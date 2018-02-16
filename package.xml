@@ -15,6 +15,7 @@
   <depend>sensor_msgs</depend>
   <depend>std_srvs</depend>
   <depend>trajectory_msgs</depend>
-
+  <depend>std_msgs</depend>
+  <depend>control_msgs</depend>
 </package>
 
