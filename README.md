@@ -1,7 +1,7 @@
 ## Project_ariac: moveArm
 This module is capable of starting the competition, moving the UR10 arm to the first piston_rod_part, picking it and then moving along the 
-linear actuator it can reach the tray on the agv and drop the part. After this it will follow the trajectory back to bin. So we need to find
-a way for it to go pick the following piston_rod_part.
+linear actuator it can reach the tray on the agv and drop the part. After this it will follow the trajectory back to bin. This is repeated for 
+the other 4 parts. THen, the agv1 is called to complete the order 
 
 ## Standard install via command-line
 ```
@@ -10,7 +10,7 @@ $ cd ~/catkin_ws/
 $ catkin_make
 $ source devel/setup.bash
 $ cd src/
-$ git checkout -b harish --single-branch https://github.com/raviBhadeshiya/project_ariac
+$ git clone -b harish --single-branch https://github.com/raviBhadeshiya/project_ariac
 $ cd ..
 $ catkin_make
 ```
@@ -23,4 +23,4 @@ and in new terminal type:
 $ rosrun project_ariac project_ariac_node
 ```
 Note:
-
+The implemented should be improved to use logical camera to find the pose of parts in the bin.
