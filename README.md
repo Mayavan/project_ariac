@@ -10,7 +10,7 @@ $ cd ~/catkin_ws/
 $ catkin_make
 $ source devel/setup.bash
 $ cd src/
-$ git checkout -b harish--single-branch https://github.com/raviBhadeshiya/project_ariac
+$ git checkout -b harish --single-branch https://github.com/raviBhadeshiya/project_ariac
 $ cd ..
 $ catkin_make
 ```
