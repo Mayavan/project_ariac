@@ -17,6 +17,7 @@
 #include <trajectory_msgs/JointTrajectory.h>
 
 #include <moveArm.hpp>
+#include <manageOrder.hpp>
 
 /// Start the competition by waiting for and then calling the start ROS Service.
 void start_competition(ros::NodeHandle & node) {
@@ -68,10 +69,16 @@ int main(int argc, char** argv)
     //ROS_INFO("Current Joint state pose: " << my_pose);
     start_competition(nh);
     ROS_INFO("Competition started!");
-
-    ros::Duration(5).sleep();
-    bool attached = false;
-        
+    manageOrder order1(nh);
+    std::vector<geometry_msgs::TransformStamped> tf = order1.getTransform();
+    for(auto pose: tf) {
+       ROS_INFO("Translation: %f, %f, %f", pose.transform.translation.x
+          , pose.transform.translation.y, pose.transform.translation.z);
+       ROS_INFO("Rotation: %f, %f, %f, %f", pose.transform.rotation.x
+          , pose.transform.rotation.y, pose.transform.rotation.z, pose.transform.rotation.w);  
+    }
+    ros::Duration(2).sleep();
+    
     // pick the 1st part
     my_pose = {1.765,0.514,-0.446,2.998,3.387,-1.509,-0.13};
     robotArm.sendJointsValue(my_pose);
