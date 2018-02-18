@@ -12,23 +12,16 @@ $ cd ~/catkin_ws/
 $ catkin_make
 $ source devel/setup.bash
 $ cd src/
-$ git clone --recursive https://github.com/raviBhadeshiya/project_ariac.git
-$ cd ..
-$ catkin_make
-```
-To create new branch:
-```
-$ cd ~/catkin_ws/src/project_ariac/
-$ git checkout -b <Name of branch you want to create>
-or
-$ git checkout <Existed branch name>
+$ git clone --recursive https://github.com/raviBhadeshiya/enigma.git
+$ git checkout <name_of_branch>
 $ cd ..
 $ catkin_make
 ```
 
+
 TO run qulifier1 type:
 ```
-$ rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1a.yaml ~/catkin_ws/src/project_ariac/config/qual1a_config.yaml 
+$ rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1a.yaml ~/catkin_ws/src/project_ariac/config/team_conf.yaml 
 ```
 and in new terminal type:
 ```

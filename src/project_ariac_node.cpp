@@ -1,5 +1,6 @@
 
 #include "project_ariac/UR10_JointControl.hpp"
+#include "project_ariac/Sensor_tf.hpp"
 
 int main(int argc, char **argv)
 {
@@ -7,13 +8,15 @@ int main(int argc, char **argv)
 
     ros::NodeHandle node;
 
-    UR10_JointControl ur10(node);
+    Sensor_tf Camera1(node);
 
-    ur10.gripperAction(gripper::OPEN);
+    // UR10_JointControl ur10(node);
 
-    ur10.jointPosePublisher({1.85, 0.35, -0.38, 2.76, 3.67, -1.51, 0.00});
+    // ur10.gripperAction(gripper::OPEN);
 
-    ur10.gripperAction(gripper::CLOSE);
+    // ur10.jointPosePublisher({1.85, 0.35, -0.38, 2.76, 3.67, -1.51, 0.00});
+
+    // ur10.gripperAction(gripper::CLOSE);
 
     ros::spin();
 

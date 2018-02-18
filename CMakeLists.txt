@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   message_generation
   control_msgs
+  geometry_msgs
 )
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -25,7 +26,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
     INCLUDE_DIRS include
-    CATKIN_DEPENDS osrf_gear control_msgs)
+    CATKIN_DEPENDS osrf_gear control_msgs geometry_msgs
+    )
 
 
 ###########
@@ -35,10 +37,11 @@ catkin_package(
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## Declare a C++ executable
-add_executable(project_ariac_node src/project_ariac_node.cpp src/UR10_JointControl.cpp)
+add_executable(project_ariac_node src/project_ariac_node.cpp src/UR10_JointControl.cpp src/Sensor_tf.cpp)
 add_dependencies(project_ariac_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_generate_messages_cpp})
 
 target_link_libraries(project_ariac_node ${catkin_LIBRARIES})
+
 
 #############
 ## Install ##
