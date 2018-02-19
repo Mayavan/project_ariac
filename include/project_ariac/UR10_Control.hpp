@@ -37,16 +37,16 @@ class UR10_Control {
  public:
   UR10_Control();
   ~UR10_Control();
-  void set_target(const geometry_msgs::pose& target_);
+  void set_target(const geometry_msgs::Pose& target_);
   bool plan();
   void move();
-  void transform();
-
  private:
-  moveit::planning_interface::MoveGroup ur10_arms_group("manipulator");
+  moveit::planning_interface::MoveGroup ur10_;//("manipulator");
   moveit::planning_interface::MoveGroup::Plan planner;
   geometry_msgs::Pose target;
   ros::NodeHandle nh;
   tf::TransformListener listner;
   tf::StampedTransform transform;
+  bool success;
 };
+

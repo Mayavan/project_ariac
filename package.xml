@@ -18,5 +18,7 @@
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>control_msgs</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>tf</depend>
 </package>
 

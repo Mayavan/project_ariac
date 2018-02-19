@@ -26,8 +26,36 @@
  */
 #include "project_ariac/UR10_Control.hpp"
 
-UR10_Control::UR10_Control();
-UR10_Control::~UR10_Control();
-void UR10_Control::set_target(const geometry_msgs::pose& target_);
-bool UR10_Control::plan();
-void UR10_Control::move();
+UR10_Control::UR10_Control():ur10_("manipulator"){
+
+    // ur10_.setPlanningTime(5);
+    ur10_.setPlanningTime(50);
+    ur10_.setNumPlanningAttempts(5);
+    ur10_.setPlannerId("RRTConnectkConfigDefault");
+}
+
+UR10_Control::~UR10_Control(){
+
+}
+
+void UR10_Control::set_target(const geometry_msgs::Pose& target_){
+        ur10_.setPoseTarget(target_);
+}
+
+bool UR10_Control::plan() {
+    // bool success = ur10_.plan(planner);
+    ROS_INFO("Planning start!");
+    bool success = (ur10_.plan(planner) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+    if(success) ROS_INFO("Planned success.");
+    else ROS_INFO("Planned unsucess!");
+    return success;
+}
+
+void UR10_Control::move() {
+    if(this->plan()) {
+        // ur10_.move();
+        ur10_.execute(planner);
+        // ur10_.asyncExecute(planner);
+        ros::Duration(1.0).sleep();
+    }
+}
