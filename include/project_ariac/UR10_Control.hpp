@@ -27,26 +27,39 @@
 #pragma once
 
 #include <geometry_msgs/Pose.h>
-#include <moveit/move_group_interface/move_group.h>
+// #include <moveit/move_group_interface/move_group.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <ros/ros.h>
 #include <trajectory_msgs/JointTrajectory.h>
+#include <osrf_gear/VacuumGripperControl.h>
+#include <osrf_gear/VacuumGripperState.h>
 #include <tf/transform_listener.h>
+#include <vector>
 
 class UR10_Control {
  public:
   UR10_Control();
   ~UR10_Control();
   void set_target(const geometry_msgs::Pose& target_);
+  void gripperAction(const bool action);
   bool plan();
   void move();
+  void goToStart();
+  void place();
+
  private:
-  moveit::planning_interface::MoveGroup ur10_;//("manipulator");
-  moveit::planning_interface::MoveGroup::Plan planner;
-  geometry_msgs::Pose target;
+  moveit::planning_interface::MoveGroupInterface ur10_;
+  moveit::planning_interface::MoveGroupInterface::Plan planner;
+  geometry_msgs::Pose target, home;
   ros::NodeHandle nh;
-  tf::TransformListener listner;
-  tf::StampedTransform transform;
+  ros::ServiceClient gripper_;
   bool success;
+  double z_offSet_pickUp = 0.03;
 };
+
+namespace gripper {
+const bool OPEN = false;
+const bool CLOSE = true;
+}  // namespace gripper
 

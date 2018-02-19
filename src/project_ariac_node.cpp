@@ -13,32 +13,22 @@ int main(int argc, char **argv)
 
     geometry_msgs::Pose target;
 
-    target.orientation.x = 0;
-    target.orientation.y = 0;
-    target.orientation.z = 0;
-    target.orientation.w = 0;
-
-    // we set positions for our pose
     target.position.x = -0.5;
-    target.position.y = -0.3;
-    target.position.z = 0.7;
+    target.position.y = -0.735;
+    target.position.z = 0.724;
 
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
-
+    // ur10.goToStart();
     ROS_INFO("Setting Target..");
     ur10.set_target(target);
     ROS_INFO("Moving");
     ur10.move();
-    // UR10_JointControl ur10(node);
-
-    // ur10.gripperAction(gripper::OPEN);
-
-    // ur10.jointPosePublisher({1.85, 0.35, -0.38, 2.76, 3.67, -1.51, 0.00});
-
-    // ur10.gripperAction(gripper::CLOSE);
-
-    // ros::spin();
-
+    ROS_INFO("Picking Up");
+    ur10.gripperAction(gripper::CLOSE);
+    ros::Duration(1).sleep();
+    ROS_INFO("Placing");
+    ur10.goToStart();
+    ur10.place();
+    ur10.goToStart();
+    // ur10.goToStart();
     return 0;
 }

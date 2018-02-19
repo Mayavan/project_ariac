@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   control_msgs
   geometry_msgs
-  tf
+  tf2
   moveit_ros_planning_interface
 )
 
