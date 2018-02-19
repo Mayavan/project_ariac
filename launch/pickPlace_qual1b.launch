@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+<!--     <include file="$(find ur10_moveit_config)/launch/ur10_moveit_planning_execution.launch">
+        <arg name = "sim" value="true"/>
+    </include> -->
+    <node pkg = "osrf_gear" name ="gear" type="gear.py" args="-f `catkin_find --share osrf_gear`/config/qual1b.yaml ~/ariac_ws/src/ariac_qual1/config/qual1b_config.yaml"/>
+
+
+
+<!--     <node pkg = "project_ariac" name = "pick_place" type="project_ariac_node" output = "screen">
+    </node> -->
+
+</launch>

@@ -61,25 +61,16 @@ void send_order(ros::NodeHandle & node) {
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "ariac_qual1");
+    ros::init(argc, argv, "project_ariac_node_1b");
     ros::NodeHandle nh;                                 // standard ros node handle
     moveArm robotArm(nh);
     std::vector<double> my_pose = robotArm.getJointsState();
     start_competition(nh);
     ROS_INFO("Competition started!");
-    manageOrder order1(nh);
-    std::vector<geometry_msgs::TransformStamped> tf = order1.getTransform();
-    for(auto pose: tf) {
-       ROS_INFO("Translation: %f, %f, %f", pose.transform.translation.x
-          , pose.transform.translation.y, pose.transform.translation.z);
-       ROS_INFO("Rotation: %f, %f, %f, %f", pose.transform.rotation.x
-          , pose.transform.rotation.y, pose.transform.rotation.z, pose.transform.rotation.w);  
-    }
-    ros::Duration(2).sleep();
+    ros::Duration(1).sleep();
     
     // pick the 1st part
-    // my_pose = {1.765,0.514,-0.446,2.998,3.387,-1.509,-0.13};
-    my_pose = {1.746341859700843, 0.4499279733031516, -0.43302049465225334, 3.087641902710679, 3.3455451498737525, -1.5251158851790891, -0.09422732907569387};
+    my_pose = robotArm.findNextPart("piston");
     robotArm.sendJointsValue(my_pose);
     robotArm.grab();
     robotArm.waitForGripperAttach(1.0);
@@ -89,8 +80,17 @@ int main(int argc, char** argv)
          
     // move back to the bin and pick 2nd part
     robotArm.movetoBin();
-    // my_pose = {2.09,-0.076,-0.48,3.52,3.06,-1.52,0.34};
-    my_pose = {1.9993150258725745, 0.8283612304111034, -0.47862158150121203, 2.564217444355852, 3.1302356236171165, -1.5201078533494, -0.590161088164975};
+    my_pose = robotArm.findNextPart("piston");
+    robotArm.sendJointsValue(my_pose);
+    robotArm.grab();
+    robotArm.waitForGripperAttach(1.0);
+
+    // move to the tray and drop
+    robotArm.movetoTray("piston");
+
+    // move back to the bin and pick 3rd part
+    robotArm.movetoBin();
+    my_pose = robotArm.findNextPart("gear");
     robotArm.sendJointsValue(my_pose);
     robotArm.grab();
     robotArm.waitForGripperAttach(1.0);
@@ -98,21 +98,9 @@ int main(int argc, char** argv)
     // move to the tray and drop
     robotArm.movetoTray("gear");
 
-    // move back to the bin and pick 3rd part
-    robotArm.movetoBin();
-    //my_pose = {2.108,0.473,-0.480,3.132,3.083,-1.520,-0.0399};
-    my_pose = {1.746341859700843, 0.4499279733031516, -0.43302049465225334, 3.087641902710679, 3.3455451498737525, -1.5251158851790891, -0.09422732907569387};
-    robotArm.sendJointsValue(my_pose);
-    robotArm.grab();
-    robotArm.waitForGripperAttach(1.0);
-
-    // move to the tray and drop
-    robotArm.movetoTray("piston");
-    my_pose = {1.7556661913415947, 0.8258945923604798, -0.4462087335570226, 2.6438218578458903, 3.393951279745265, -1.5038396922932926, -0.5269700067425571};
     // move back to the bin and pick 4th part
     robotArm.movetoBin();
-    // my_pose = {1.961,-0.317,-0.477,3.317,3.223,-1.519,0.145};
-
+    my_pose = robotArm.findNextPart("gear");
     robotArm.sendJointsValue(my_pose);
     robotArm.grab();
     robotArm.waitForGripperAttach(1.0);
@@ -122,14 +110,16 @@ int main(int argc, char** argv)
 
     // move back to the bin and pick 5th part
     robotArm.movetoBin();
-    // my_pose = {1.953,-0.421,-0.481,3.35,3.234,-1.519,0.177};
-    my_pose = {1.7795219161302143, 0.7201174188260127, -0.44470612613149196, 2.6770752858142997, 3.304222564211552, -1.5372031877129149, -0.44807671536402083};
+    my_pose = robotArm.findNextPart("gear");
     robotArm.sendJointsValue(my_pose);
     robotArm.grab();
     robotArm.waitForGripperAttach(1.0);
      
     // move to the tray and drop
     robotArm.movetoTray("gear");
+    
+    // send the agv1 to complete order
+    send_order(nh);
 
     // move the arm back to its original position
     robotArm.movetoBin();
@@ -137,7 +127,5 @@ int main(int argc, char** argv)
     robotArm.sendJointsValue(my_pose);
     ros::Duration(1.0).sleep();
 
-    // send the agv1 to complete order
-    send_order(nh);
     return 0;
 }

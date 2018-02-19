@@ -28,6 +28,10 @@ public:
     osrf_gear::VacuumGripperState getGripperState();
     bool isGripperAttached();
     bool waitForGripperAttach(double timeout);
+    void movetoTray(std::string type);
+    void movetoBin();
+    void recoverDrop(int i, std::string type);
+    std::vector<double> findNextPart(std::string type);
 
 private:
     ros::NodeHandle nh;
@@ -44,6 +48,10 @@ private:
     osrf_gear::VacuumGripperControl attach;
     osrf_gear::VacuumGripperControl detach;
     double arrivalTime;
+    std::vector<std::vector<double>> piston_pose;
+    std::vector<std::vector<double>> gear_pose;
+    int size1 = 11;
+    int size2 = 15;
 
     void jointStateCallback(const sensor_msgs::JointState::ConstPtr &joint_state_msg);
     void gripperStateCallback(const osrf_gear::VacuumGripperState::ConstPtr &msg);
