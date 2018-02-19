@@ -41,21 +41,23 @@ class UR10_Control {
  public:
   UR10_Control();
   ~UR10_Control();
-  void set_target(const geometry_msgs::Pose& target_);
+  void set_target(const geometry_msgs::Pose& target_);;
   void gripperAction(const bool action);
   bool plan();
   void move();
   void goToStart();
   void place();
 
+  tf::StampedTransform getTransfrom(const std::string& src, const std::string& target);
+  void pickAndPlace(const geometry_msgs::Pose& target_);
  private:
   moveit::planning_interface::MoveGroupInterface ur10_;
   moveit::planning_interface::MoveGroupInterface::Plan planner;
-  geometry_msgs::Pose target, home;
+  geometry_msgs::Pose target, home, agv;
   ros::NodeHandle nh;
   ros::ServiceClient gripper_;
   bool success;
-  double z_offSet_pickUp = 0.03;
+  double z_offSet_pickUp = 0.026;
 };
 
 namespace gripper {
