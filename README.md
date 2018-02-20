@@ -1,10 +1,9 @@
-## Project_ariac: moveArm
-This module is capable of starting the competition, moving the UR10 arm to the first piston_rod_part, picking it and then moving along the 
-linear actuator it can reach the tray on the agv and drop the part. After this it will follow the trajectory back to bin. This is repeated for 
-the other 4 parts. THen, the agv1 is called to complete the order. 
+# project_ariac
 
-Update: I've added a class to retrieve the order and find the objects that we have to pick and place. Using this I also find the transform of
-those objects from /camera frame to /world frame.
+* If you are someone who doesn’t know how to use GitHub, then once go though this tutorials.[click here](https://try.github.io)
+* Upload your code on your branch and **DON'T MERGE ANY BRANCH TO MASTER WITHOUT PEER-REVIEW!**
+* Please try to follow [Google Cpp style Guide](https://google.github.io/styleguide/cppguide.html) so every one can understand the code!
+* I belive we are gonna devlope whole final project on top of this project so try to use OOP as well as [CPP 14](https://github.com/AnthonyCalandra/modern-cpp-features).
 
 ## Standard install via command-line
 ```
@@ -13,17 +12,18 @@ $ cd ~/catkin_ws/
 $ catkin_make
 $ source devel/setup.bash
 $ cd src/
-$ git clone -b harish --single-branch https://github.com/raviBhadeshiya/project_ariac
+$ git clone --recursive https://github.com/raviBhadeshiya/enigma.git
+$ git checkout <name_of_branch>
 $ cd ..
 $ catkin_make
 ```
-To run qualifier1 type:
+
+
+TO run qulifier1 type:
 ```
-$ rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1a.yaml ~/catkin_ws/src/project_ariac/config/qual1a_config.yaml 
+$ rosrun osrf_gear gear.py -f `catkin_find --share osrf_gear`/config/qual1a.yaml ~/catkin_ws/src/project_ariac/config/team_conf.yaml 
 ```
 and in new terminal type:
 ```
 $ rosrun project_ariac project_ariac_node
 ```
-Note:
-The transform of the object pose can be used to find the joint state position of the arm using moveit and hence control the arm.

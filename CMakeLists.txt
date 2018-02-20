@@ -12,6 +12,9 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   message_generation
   control_msgs
+  geometry_msgs
+  tf2
+  moveit_ros_planning_interface
 )
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -23,9 +26,11 @@ find_package(catkin REQUIRED COMPONENTS
 #     std_msgs sensor_msgs trajectory_msgs #VacuumGripperControl
 # )
 
-catkin_package(
-    INCLUDE_DIRS include
-    CATKIN_DEPENDS osrf_gear control_msgs)
+catkin_package()
+
+    # INCLUDE_DIRS include
+    # CATKIN_DEPENDS osrf_gear control_msgs geometry_msgs
+    # )
 
 
 ###########
@@ -35,13 +40,54 @@ catkin_package(
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## Declare a C++ executable
-add_executable(project_ariac_node_1b src/qual1b.cpp src/manageOrder.cpp src/moveArm.cpp)
-add_dependencies(project_ariac_node_1b ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_generate_messages_cpp})
+add_executable(project_ariac_node src/project_ariac_node.cpp src/UR10_Control.cpp)
 
-target_link_libraries(project_ariac_node_1b ${catkin_LIBRARIES})
+add_dependencies(project_ariac_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_generate_messages_cpp})
 
-add_executable(project_ariac_node_1a src/qual1a.cpp src/manageOrder.cpp src/moveArm.cpp)
-add_dependencies(project_ariac_node_1a ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_generate_messages_cpp})
+target_link_libraries(project_ariac_node ${catkin_LIBRARIES})
 
-target_link_libraries(project_ariac_node_1a ${catkin_LIBRARIES})
 
+#############
+## Install ##
+#############
+
+# all install targets should use catkin DESTINATION variables
+# See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
+
+## Mark executable scripts (Python etc.) for installation
+install(PROGRAMS script/ariac_example_node.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+## Mark executables and/or libraries for installation
+install(TARGETS project_ariac_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+## Mark cpp header files for installation
+# install(DIRECTORY include/${PROJECT_NAME}/
+#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#   FILES_MATCHING PATTERN "*.h"
+#   PATTERN ".svn" EXCLUDE
+# )
+
+## Mark other files for installation (e.g. launch and bag files, etc.)
+install(FILES
+ config/sample_gear_conf.yaml
+ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
+)
+
+#############
+## Testing ##
+#############
+
+## Add gtest based cpp test target and link libraries
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_ariac_example.cpp)
+# if(TARGET ${PROJECT_NAME}-test)
+#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+# endif()
+
+## Add folders to be run by python nosetests
+# catkin_add_nosetests(test)
