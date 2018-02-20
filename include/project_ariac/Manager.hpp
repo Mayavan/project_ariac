@@ -15,7 +15,9 @@
 #include <string>
 #include <list>
 #include <map>
-using partlist = map<std::string, std::list<std::string>>
+
+using partlist = map<std::string, std::list<std::string>>;
+
 class Manager {
  public:
   Manager();
@@ -28,7 +30,7 @@ class Manager {
   bool isReady();
   map<std::string, std::list<std::string>> getOrder();
  private:
-  ros::Subscriber logical_camera_1, logical_camera_2,orders_subscrib=
+  ros::Subscriber logical_camera_1, logical_camera_2,orders_subscriber;
   partlist inventory, order;
   ros::NodeHandle nh;
   bool l1_flag = false, l2_flag = false;

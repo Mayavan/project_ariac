@@ -10,12 +10,12 @@ Manager::Manager() {
 }
 
 Manager::~Manager() {
-    for(auto i:order) {
-        ROS_INFO_STREAM(i.first);
-        for(auto j:i.second){
-            ROS_INFO_STREAM(j);
-        }
+  for (auto i : order) {
+    ROS_INFO_STREAM(i.first);
+    for (auto j : i.second) {
+      ROS_INFO_STREAM(j);
     }
+  }
 }
 
 void Manager::logical_camera_callback_1(
@@ -45,12 +45,14 @@ void Manager::logical_camera_callback_2(
 }
 
 void Manager::order_callback(const osrf_gear::Order::ConstPtr& order_msg) {
-  for (const auto& itr : order_msg->order_id[0].kits[0].objects) {
-    order[itr.type].push_back(inventory[itr.type].front());
-    inventory[itr.type].pop_front()
+  for (const auto& id : order_msg->order_id) {
+    for (const auto& kit : id.kits) {
+      for (const auto& itr : kits.orders) {
+        order[itr.type].push_back(inventory[itr.type].front());
+        inventory[itr.type].pop_front()
+      }
+    }
   }
 }
 
-void Manager::isReady() {
-    return l1_flag && l2_flag;
-}
+void Manager::isReady() { return l1_flag && l2_flag; }
