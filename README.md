@@ -1,5 +1,5 @@
 # project_ariac
-[![Packagist](https://img.shields.io/pypi/l/Django.svg)](LICENSE.md)
+[![Packagist](https://img.shields.io/pypi/l/Django.svg)](LICENSE)
 ---
 * If you are someone who doesn’t know how to use GitHub, then once go though this tutorials.[click here](https://try.github.io)
 * Upload your code on your branch and **DON'T MERGE ANY BRANCH TO MASTER WITHOUT PEER-REVIEW!**
