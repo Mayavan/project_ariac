@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg = "osrf_gear" name ="gear" type="gear.py" args="-f `catkin_find --share osrf_gear`/config/qual1a.yaml `catkin_find --share project_ariac`/config/qual1a_config.yaml"/>
+</launch>
