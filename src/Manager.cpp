@@ -107,10 +107,6 @@ void Manager::order_callback(const osrf_gear::Order::ConstPtr& order_msg) {
 
 bool Manager::isReady() { return l1_flag_ && l2_flag_; }
 
-partlist Manager::getOrder(){
-  return order_;
-}
+partlist Manager::getOrder() { return order_; }
 
-bool Manager::isOrderReady() {
-  return order_complete_;
-}
+bool Manager::isOrderReady() { return order_complete_; }
