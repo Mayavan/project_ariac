@@ -50,6 +50,8 @@ class UR10_Control {
   ~UR10_Control();
   void setTarget(const geometry_msgs::Pose& target);
   void gripperAction(const bool action);
+  bool gripperPickup(const bool action, const geometry_msgs::Pose& target_);
+  void gripperStatusCallback(const osrf_gear::VacuumGripperState::ConstPtr& gripper_status);
   void move();
   void goToStart();
   void place();
@@ -60,6 +62,7 @@ class UR10_Control {
 
  protected:
   bool plan();
+  void gripperStatus(const osrf_gear::VacuumGripperState::ConstPtr& gripper_status);
  private:
   moveit::planning_interface::MoveGroupInterface ur10_;
   moveit::planning_interface::MoveGroupInterface::Plan planner_;
@@ -67,6 +70,8 @@ class UR10_Control {
   ros::NodeHandle nh_;
   ros::ServiceClient gripper_;
   double z_offSet_pickUp_ = 0.026;
+  bool gripper_attached_;
+  ros::Subscriber gripper_callback_;
 };
 
 namespace gripper {
