@@ -1,0 +1,3 @@
+- git:
+    uri: https://bitbucket.org/osrf/ariac
+    local-name: ariac_2017
