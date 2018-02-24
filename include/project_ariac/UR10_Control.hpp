@@ -34,7 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <geometry_msgs/Pose.h>
-// #include <moveit/move_group_interface/move_group.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <osrf_gear/VacuumGripperControl.h>
@@ -43,17 +42,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <tf/transform_listener.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <vector>
+#include <string>
 
 class UR10_Control {
  public:
-  UR10_Control();
+  explicit UR10_Control(const ros::NodeHandle& server);
   ~UR10_Control();
   void setTarget(const geometry_msgs::Pose& target);
   void gripperAction(const bool action);
   void move();
   void goToStart();
   void place();
-
   tf::StampedTransform getTransfrom(const std::string& src,
                                     const std::string& target);
   void pickAndPlace(const geometry_msgs::Pose& target_);
@@ -66,7 +65,8 @@ class UR10_Control {
   geometry_msgs::Pose target_, home_, agv_;
   ros::NodeHandle nh_;
   ros::ServiceClient gripper_;
-  double z_offSet_pickUp_ = 0.026;
+  double z_offSet_pickUp_;
+  std::vector<double> starting_joint_angle_;
 };
 
 namespace gripper {

@@ -84,16 +84,12 @@ void send_order(ros::NodeHandle& node) {
 }
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "ariac_example_node");
+  ros::init(argc, argv, "project_ariac_node");
 
   ros::NodeHandle node;
+  ros::NodeHandle private_node_handle("~");
 
-  UR10_Control ur10;
-  // target.position.x = -0.5;
-  // target.position.y = -0.735;
-  // target.position.z = 0.724;
-
-  // ur10.pickAndPlace(target);
+  UR10_Control ur10(private_node_handle);
 
   Manager mangement(node);
 
