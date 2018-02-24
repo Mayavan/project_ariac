@@ -1,4 +1,5 @@
 # project_ariac
+[![Build Status](https://travis-ci.com/raviBhadeshiya/project_ariac.svg?token=b7ep99UiGAJKkz6Z2fSJ&branch=master)](https://travis-ci.com/raviBhadeshiya/project_ariac)
 [![Packagist](https://img.shields.io/pypi/l/Django.svg)](LICENSE)
 ---
 * If you are someone who doesn’t know how to use GitHub, then once go though this tutorials.[click here](https://try.github.io)
