@@ -54,11 +54,10 @@ class UR10_Control {
   void gripperStatusCallback(const osrf_gear::VacuumGripperState::ConstPtr& gripper_status);
   void move();
   void goToStart();
-  void place();
-
+  bool place();
   tf::StampedTransform getTransfrom(const std::string& src,
                                     const std::string& target);
-  void pickAndPlace(const geometry_msgs::Pose& target_);
+  bool pickAndPlace(const geometry_msgs::Pose& target_);
 
  protected:
   bool plan();

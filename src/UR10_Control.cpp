@@ -117,23 +117,39 @@ void UR10_Control::goToStart() {
   this->move();
   ros::Duration(1.0).sleep();
 }
-void UR10_Control::place() {
+bool UR10_Control::place() {
   // ROS_INFO_STREAM(agv.position);
 
-  std::vector<std::vector<double>> poses = {
-      {1.76, 0.38, -1.38, 2.76, 3.27, -1.51, 0.00}};  //,
-  // {2.76, 0.38, -1.38, 1.5, 3.27, -1.51, 0.00},
-  // {2.76, 1.56, -1.38, 1.5, 3.27, -1.51, 0.00},
-  // {2.76, 1.56, -0.63, 1.5, 3.27, -1.51, 0.00}};
+  std::vector<std::vector<double>> poses;
+  poses.push_back({1.76, 0.38, -1.38, 2.76, 3.27, -1.51, 0.00});
+  //poses.push_back({1.76, 0.28, -1.38, 1.5, 3.27, -1.51, 0.00});  
+  //poses.push_back({1.76, 0.38, -1.38, 1.5, 3.27, -1.51, 0.00});
+  //poses.push_back({1.76, 2.06, -1.38, 1.5, 3.27, -1.51, 0.00});
 
   for (const auto& itr : poses) {
     ur10_.setJointValueTarget(itr);
     this->move();
     ros::Duration(1.0).sleep();
+    ROS_INFO("Here");
   }
 
+  ros::spinOnce();
+  if(!gripper_attached_){
+  	return false;
+  }
+  
   this->setTarget(agv_);
   this->move();
+
+  ros::spinOnce();
+  if(!gripper_attached_){
+  	for (const auto& itr : poses) {
+      ur10_.setJointValueTarget(itr);
+      this->move();
+      ros::Duration(1.0).sleep();
+    } 
+  	return false;
+  }
 
   this->gripperAction(gripper::OPEN);
 
@@ -144,6 +160,7 @@ void UR10_Control::place() {
     this->move();
     ros::Duration(1.0).sleep();
   }
+  return true;
 }
 
 void UR10_Control::gripperAction(const bool action) {
@@ -200,16 +217,20 @@ void UR10_Control::gripperStatusCallback(
   gripper_attached_=gripper_status->attached;
 }
 
-void UR10_Control::pickAndPlace(const geometry_msgs::Pose& target_) {
+bool UR10_Control::pickAndPlace(const geometry_msgs::Pose& target_) {
   // ur10.goToStart();
 
   this->gripperPickup(gripper::CLOSE, target_);
   ROS_INFO("Placing");
 
   this->goToStart();
-
-  this->place();
+  ros::spinOnce();
+  if(!gripper_attached_){
+  	return false;
+  }
+  bool success = this->place();
 
   ROS_INFO("Home");
   this->goToStart();
+  return success;
 }
