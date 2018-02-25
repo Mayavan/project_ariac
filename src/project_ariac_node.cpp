@@ -89,18 +89,13 @@ int main(int argc, char** argv) {
   ros::NodeHandle node;
 
   UR10_Control ur10;
-  // target.position.x = -0.5;
-  // target.position.y = -0.735;
-  // target.position.z = 0.724;
 
-  // ur10.pickAndPlace(target);
-
-  Manager mangement(node);
+  Manager management(node);
 
   ROS_INFO_STREAM("Manager is ready");
   ros::Rate rate(1.0);
 
-  while (!mangement.isReady()) {
+  while (!management.isReady()) {
     ROS_INFO_STREAM("wait for scanning process");
     ros::spinOnce();
     rate.sleep();
@@ -110,7 +105,7 @@ int main(int argc, char** argv) {
 
   start_competition(node);
 
-  while (!mangement.isOrderReady()) {
+  while (!management.isOrderReady()) {
     ROS_INFO_STREAM("wait for order");
     ros::spinOnce();
     rate.sleep();
@@ -119,7 +114,7 @@ int main(int argc, char** argv) {
   geometry_msgs::Pose target;
   tf::StampedTransform transform;
 
-  for (const auto& part : mangement.getOrder()) {
+  for (const auto& part : management.getOrder()) {
     ROS_INFO_STREAM(part.first);
     for (const auto& itr : part.second) {
       transform = ur10.getTransfrom("/world", itr);
@@ -129,10 +124,24 @@ int main(int argc, char** argv) {
       target.position.z = transform.getOrigin().z();
 
       ROS_INFO_STREAM(">>>>>>>" << itr);
-      ur10.pickAndPlace(target);
+      bool success = ur10.pickAndPlace(target);
+      if(!success) {
+        ROS_INFO_STREAM("Finding Replacement");
+        for (const auto& replace_part_ : management.updateOrder(part.first)) {
+          for (const auto& itr1 : replace_part_.second) {
+            transform = ur10.getTransfrom("/world", itr1);
+
+            target.position.x = transform.getOrigin().x();
+            target.position.y = transform.getOrigin().y();
+            target.position.z = transform.getOrigin().z();
+
+            ROS_INFO_STREAM(">>>>>>>" << itr1);
+            success = ur10.pickAndPlace(target); 
+          }
+        }
+      }  
     }
   }
-
   send_order(node);
 
   end_competition(node);

@@ -53,6 +53,7 @@ class Manager {
   void print(const partlist& parts);
   partlist getOrder();
   bool isOrderReady();
+  partlist updateOrder(std::string type);
  protected:
   void logical_camera_callback_1(
       const osrf_gear::LogicalCameraImage::ConstPtr &image_msg);
