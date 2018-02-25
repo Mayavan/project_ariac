@@ -49,7 +49,7 @@ Manager::Manager(ros::NodeHandle& nh) : nh_(nh) {
 
 Manager::~Manager() {}
 
-void Manager::print(const partlist& parts) {
+void Manager::print(const database& parts) {
   ROS_INFO_STREAM("size:" << parts.size());
   for (const auto& i : parts) {
     ROS_INFO_STREAM(i.first);
@@ -95,18 +95,25 @@ void Manager::order_callback(const osrf_gear::Order::ConstPtr& order_msg) {
   ROS_INFO_STREAM("order callback in");
   for (const auto& kit : order_msg->kits) {
     for (const auto& itr : kit.objects) {
-      order_[itr.type].push_back(inventory_[itr.type].front());
-      inventory_[itr.type].pop_front();
+      // order_[itr.type].push_back(inventory_[itr.type].front());
+      // inventory_[itr.type].pop_front();
+      order_[itr.type].push_back(getPart(itr.type));
     }
   }
   ROS_INFO_STREAM("order callback complete");
-  print(order_);
+  // print(order_);
   order_complete_ = true;
   // }
 }
 
+std::string Manager::getPart(const std::string& partType) {
+  std::string part = inventory_[partType].front();
+  inventory_[partType].pop_front();
+  return part;
+}
+
 bool Manager::isReady() { return l1_flag_ && l2_flag_; }
 
-partlist Manager::getOrder() { return order_; }
+database Manager::getOrder() { return order_; }
 
 bool Manager::isOrderReady() { return order_complete_; }

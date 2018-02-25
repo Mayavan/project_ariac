@@ -43,25 +43,28 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <string>
 
-using partlist = std::map<std::string, std::list<std::string>>;
+using database = std::map<std::string, std::list<std::string>>;
 
 class Manager {
  public:
   Manager(ros::NodeHandle& nh);
   ~Manager();
   bool isReady();
-  void print(const partlist& parts);
-  partlist getOrder();
+  void print(const database& parts);
+  database getOrder();
   bool isOrderReady();
+  std::string getPart(const std::string& partType);
+
  protected:
   void logical_camera_callback_1(
       const osrf_gear::LogicalCameraImage::ConstPtr &image_msg);
   void logical_camera_callback_2(
       const osrf_gear::LogicalCameraImage::ConstPtr &image_msg);
   void order_callback(const osrf_gear::Order::ConstPtr &order_msg);
+
  private:
   ros::Subscriber logical_camera_1_, logical_camera_2_, orders_subscriber_;
-  partlist inventory_, order_;
+  database inventory_, order_;
   ros::NodeHandle nh_;
   bool l1_flag_ = false, l2_flag_ = false, order_complete_ = false;
 };

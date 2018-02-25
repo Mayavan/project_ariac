@@ -33,13 +33,36 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "project_ariac/UR10_Control.hpp"
 
-UR10_Control::UR10_Control() : ur10_("manipulator") {
-  // ur10_.setPlanningTime(5);
-  ur10_.setPlanningTime(2.5);
-  ur10_.setNumPlanningAttempts(20);
-  ur10_.setPlannerId("RRTConnectkConfigDefault");
+UR10_Control::UR10_Control(const ros::NodeHandle& server)
+    : ur10_("manipulator") {
 
-  ros::Duration(1.0).sleep();
+  starting_joint_angle_.resize(7);
+  server.param("elbow_joint", starting_joint_angle_[0], 0.0);
+  server.param("linear_arm_actuator_joint", starting_joint_angle_[1], 3.0);
+  server.param("shoulder_lift_joint", starting_joint_angle_[2], -1.0);
+  server.param("shoulder_pan_joint", starting_joint_angle_[3], 1.9);
+  server.param("wrist_1_joint", starting_joint_angle_[4], 4.0);
+  server.param("wrist_2_joint", starting_joint_angle_[5], 4.7);
+  server.param("wrist_3_joint", starting_joint_angle_[6], 0.0);
+
+  server.param("z_offSet_pickUp", z_offSet_pickUp_, 0.026);
+
+  std::string planner;
+  server.param<std::string>("planner", planner, "RRTConnectkConfigDefault");
+  ur10_.setPlannerId(planner);
+
+  double planning_time;
+  server.param("planning_time", planning_time, 2.5);
+  ur10_.setPlanningTime(planning_time);
+
+  int planning_attempt;
+  server.param("planning_attempt", planning_attempt, 20);
+  ur10_.setNumPlanningAttempts(planning_attempt);
+
+  gripper_ = nh_.serviceClient<osrf_gear::VacuumGripperControl>(
+      "/ariac/gripper/control");
+
+  ros::Duration(0.5).sleep();
 
   this->goToStart();
 
@@ -50,9 +73,6 @@ UR10_Control::UR10_Control() : ur10_("manipulator") {
   home_.orientation.z = transform.getRotation().z();
   home_.orientation.w = transform.getRotation().w();
   target_ = home_;
-
-  gripper_ = nh_.serviceClient<osrf_gear::VacuumGripperControl>(
-      "/ariac/gripper/control");
 
   transform = this->getTransfrom("/world", "/agv1_load_point_frame");
 
@@ -74,7 +94,7 @@ tf::StampedTransform UR10_Control::getTransfrom(const std::string& src,
   listener.waitForTransform(src, target, ros::Time(0), ros::Duration(20));
   try {
     listener.lookupTransform(src, target, ros::Time(0), transform);
-  } catch (tf::TransformException ex) {
+  } catch (tf::TransformException& ex) {
     ROS_ERROR("%s", ex.what());
     ros::Duration(1.0).sleep();
   }
@@ -107,19 +127,18 @@ void UR10_Control::move() {
     ur10_.move();
     // ur10_.execute(planner);
     // ur10_.asyncExecute(planner);
-    ros::Duration(1.0).sleep();
+    ros::Duration(0.5).sleep();
   }
 }
 
 void UR10_Control::goToStart() {
-  std::vector<double> target = {0, 3, -1, 1.9, 4, 4.7, 0};
-  ur10_.setJointValueTarget(target);
+  // std::vector<double> target = {0, 3 , -1, 1.9, 4, 4.7, 0};
+  // ur10_.setJointValueTarget(target);
+  ur10_.setJointValueTarget(starting_joint_angle_);
   this->move();
-  ros::Duration(1.0).sleep();
+  ros::Duration(0.5).sleep();
 }
 void UR10_Control::place() {
-  // ROS_INFO_STREAM(agv.position);
-
   std::vector<std::vector<double>> poses = {
       {1.76, 0.38, -1.38, 2.76, 3.27, -1.51, 0.00}};  //,
   // {2.76, 0.38, -1.38, 1.5, 3.27, -1.51, 0.00},
@@ -129,7 +148,7 @@ void UR10_Control::place() {
   for (const auto& itr : poses) {
     ur10_.setJointValueTarget(itr);
     this->move();
-    ros::Duration(1.0).sleep();
+    ros::Duration(0.5).sleep();
   }
 
   this->setTarget(agv_);
@@ -137,12 +156,12 @@ void UR10_Control::place() {
 
   this->gripperAction(gripper::OPEN);
 
-  ros::Duration(1.0).sleep();
+  ros::Duration(0.5).sleep();
 
   for (const auto& itr : poses) {
     ur10_.setJointValueTarget(itr);
     this->move();
-    ros::Duration(1.0).sleep();
+    ros::Duration(0.5).sleep();
   }
 }
 
@@ -153,7 +172,7 @@ void UR10_Control::gripperAction(const bool action) {
 
   gripper_.call(srv);
 
-  ros::Duration(1).sleep();
+  ros::Duration(0.5).sleep();
 
   if (srv.response.success)
     ROS_INFO_STREAM("Gripper Action Successfully Exicuted!");
