@@ -130,6 +130,7 @@ int main(int argc, char** argv) {
   }
 
   send_order(node);
+
   end_competition(node);
 
   return 0;

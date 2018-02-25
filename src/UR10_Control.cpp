@@ -80,6 +80,9 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
   agv_.position.y = transform.getOrigin().y();
   agv_.position.z = transform.getOrigin().z() + 2 * z_offSet_pickUp_;
   agv_.orientation = home_.orientation;
+
+  gripper_callback_ = nh_.subscribe("/ariac/gripper/state/", 10,
+                                    &UR10_Control::gripperStatusCallback, this);
 }
 
 UR10_Control::~UR10_Control() {}
@@ -177,15 +180,49 @@ void UR10_Control::gripperAction(const bool action) {
     ROS_ERROR("Gripper Action Failed!");
 }
 
-void UR10_Control::pickAndPlace(const geometry_msgs::Pose& target_) {
-  // ur10.goToStart();
+bool UR10_Control::gripperPickup(const bool action, const geometry_msgs::Pose& target){
+  ros::Rate rate(0.1);
+
   ROS_INFO("Setting Target..");
-  this->setTarget(target_);
+  this->setTarget(target);
   ROS_INFO("Moving");
   this->move();
   ROS_INFO("Picking Up");
 
+  int count = 0;
   this->gripperAction(gripper::CLOSE);
+
+  target_.position = target.position;
+
+  while(!gripper_attached_){
+    ROS_INFO_STREAM("wait for scanning process");
+
+    target_.position.z -= 0.01;
+
+    count++;
+
+    if (count > z_offSet_pickUp_/0.01)
+      break;
+    this->setTarget(target);
+    this->move();
+
+    ros::spinOnce();
+    rate.sleep();
+  }
+  return gripper_attached_;
+}
+
+
+void UR10_Control::gripperStatusCallback(
+    const osrf_gear::VacuumGripperState::ConstPtr& gripper_status) {
+
+  gripper_attached_=gripper_status->attached;
+}
+
+void UR10_Control::pickAndPlace(const geometry_msgs::Pose& target_) {
+  // ur10.goToStart();
+
+  this->gripperPickup(gripper::CLOSE, target_);
   ROS_INFO("Placing");
 
   this->goToStart();
