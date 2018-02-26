@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
   ROS_INFO_STREAM("Manager is ready");
   ros::Rate rate(1.0);
 
-  while (!mangement.isReady()) {
+  while (!management.isReady()) {
     ROS_INFO_STREAM("wait for scanning process");
     ros::spinOnce();
     rate.sleep();
@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
 
   start_competition(node);
 
-  while (!mangement.isOrderReady()) {
+  while (!management.isOrderReady()) {
     ROS_INFO_STREAM("wait for order");
     ros::spinOnce();
     rate.sleep();
@@ -139,16 +139,31 @@ int main(int argc, char** argv) {
       target.position.z = transform.getOrigin().z();
 
       ROS_INFO_STREAM(">>>>>>>" << itr);
+      // <<<<<<< HEAD
 
-      auto success = ur10.pickAndPlace(target);
+      //       auto success = ur10.pickAndPlace(target);
 
+      //       if (!success) {
+      //         part.second.push_front(mangement.getPart(part.first));
+      //         ur10.goToStart();
+      //       }
+      // =======
+      bool success = ur10.pickAndPlace(target);
       if (!success) {
-        part.second.push_front(mangement.getPart(part.first));
-        ur10.goToStart();
+        ROS_INFO_STREAM("Finding Replacement");
+        auto part = management.getPart(part.first);
+
+        transform = ur10.getTransfrom("/world", part);
+
+        target.position.x = transform.getOrigin().x();
+        target.position.y = transform.getOrigin().y();
+        target.position.z = transform.getOrigin().z();
+
+        ROS_INFO_STREAM(">>>>>>>" << part);
+        success = ur10.pickAndPlace(target);
       }
     }
   }
-
   send_order(node);
 
   end_competition(node);

@@ -75,7 +75,6 @@ class UR10_Control {
   std::vector<double> starting_joint_angle_;
   ros::Subscriber gripper_callback_;
   bool gripper_attached_;
-  osrf_gear::VacuumGripperState gripper_state_;
 };
 
 namespace gripper {

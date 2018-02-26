@@ -150,18 +150,33 @@ bool UR10_Control::place() {
   for (const auto& itr : poses) {
     ur10_.setJointValueTarget(itr);
     this->move();
-    ros::Duration(0.5).sleep();
+    ros::Duration(1.0).sleep();
+  }
+
+  ros::spinOnce();
+  if(!gripper_attached_){
+  	return false;
   }
 
   this->setTarget(agv_);
   this->move();
   // if gripper attached false before placing return
   // placing failed report
-  ros::Rate rate(0.5);
-  ros::spinOnce();
-  rate.sleep();
+  // ros::Rate rate(0.5);
+  // ros::spinOnce();
+  // rate.sleep();
 
-  if (gripper_state_.attached = false) return false;
+  // if (gripper_state_.attached = false) return false;
+
+  ros::spinOnce();
+  if(!gripper_attached_){
+  	for (const auto& itr : poses) {
+      ur10_.setJointValueTarget(itr);
+      this->move();
+      ros::Duration(1.0).sleep();
+    }
+  	return false;
+  }
 
   this->gripperAction(gripper::OPEN);
 
@@ -202,7 +217,7 @@ bool UR10_Control::gripperPickup(const bool action) {
   ros::spinOnce();
   rate.sleep();
 
-  while (!gripper_state_.attached) {
+  while (!gripper_attached_) {
     target_.position.z -= Delta;
 
     ROS_INFO_STREAM("Picking up:" << target_.position.z << " count:" << count);
@@ -219,13 +234,13 @@ bool UR10_Control::gripperPickup(const bool action) {
     rate.sleep();
   }
 
-  return gripper_state_.attached;
+  return gripper_attached_;
 }
 
 void UR10_Control::gripperStatusCallback(
     const osrf_gear::VacuumGripperState::ConstPtr& gripper_status) {
-  gripper_state_.attached = gripper_status->attached;
-  gripper_state_.enabled = gripper_status->enabled;
+  gripper_attached_ = gripper_status->attached;
+  // gripper_state_.enabled = gripper_status->enabled;
 }
 
 bool UR10_Control::pickAndPlace(const geometry_msgs::Pose& target_) {
@@ -242,12 +257,16 @@ bool UR10_Control::pickAndPlace(const geometry_msgs::Pose& target_) {
   // if gripper not able to pick
   if (!result) return result;
 
-  ROS_INFO("Placing");
   this->goToStart();
-  result = this->place();
+
+  ros::spinOnce();
+
+  if(!gripper_attached_){
+  	return false;
+  }
+  bool success = this->place();
 
   ROS_INFO("Home");
   this->goToStart();
-
-  return result;
+  return success;
 }

@@ -54,6 +54,7 @@ class Manager {
   database getOrder();
   bool isOrderReady();
   std::string getPart(const std::string& partType);
+  // partlist updateOrder(std::string type);
 
  protected:
   void logical_camera_callback_1(

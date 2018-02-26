@@ -106,11 +106,18 @@ void Manager::order_callback(const osrf_gear::Order::ConstPtr& order_msg) {
   // }
 }
 
+
 std::string Manager::getPart(const std::string& partType) {
   std::string part = inventory_[partType].front();
   inventory_[partType].pop_front();
   return part;
-}
+
+// partlist Manager::updateOrder(std::string type) {
+//    partlist replace_order_;
+//    replace_order_[type].push_back(inventory_[type].front());
+//    inventory_[type].pop_front();
+//    return replace_order_;
+// }
 
 bool Manager::isReady() { return l1_flag_ && l2_flag_; }
 
