@@ -149,7 +149,10 @@ int main(int argc, char** argv) {
       //       }
       // =======
       bool success = ur10.pickAndPlace(target);
-      if (!success) {
+
+      ROS_ERROR_STREAM("pick and Place >>>>>>>>>" << success << std::endl);
+
+      while (!success) {
         ROS_INFO_STREAM("Finding Replacement");
         auto replacement = management.getPart(part.first);
 
