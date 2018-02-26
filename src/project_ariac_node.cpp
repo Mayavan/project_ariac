@@ -89,14 +89,22 @@ int main(int argc, char** argv) {
   ros::NodeHandle node;
   ros::NodeHandle private_node_handle("~");
 
+  bool run;
+  private_node_handle.param("run", run, false);
+
   UR10_Control ur10(private_node_handle);
 
-  Manager mangement(node);
+  if (run) {
+    ur10.goToStart();
+    return 0;
+  }
+
+  Manager management(node);
 
   ROS_INFO_STREAM("Manager is ready");
   ros::Rate rate(1.0);
 
-  while (!mangement.isReady()) {
+  while (!management.isReady()) {
     ROS_INFO_STREAM("wait for scanning process");
     ros::spinOnce();
     rate.sleep();
@@ -106,7 +114,7 @@ int main(int argc, char** argv) {
 
   start_competition(node);
 
-  while (!mangement.isOrderReady()) {
+  while (!management.isOrderReady()) {
     ROS_INFO_STREAM("wait for order");
     ros::spinOnce();
     rate.sleep();
@@ -115,9 +123,15 @@ int main(int argc, char** argv) {
   geometry_msgs::Pose target;
   tf::StampedTransform transform;
 
-  for (const auto& part : mangement.getOrder()) {
+  auto order = management.getOrder();
+  // remove const to modify part
+  for (auto& part : order) {
     ROS_INFO_STREAM(part.first);
-    for (const auto& itr : part.second) {
+    while (!part.second.empty()) {
+      //   for (const auto& itr : part.second) {
+      auto itr = part.second.front();
+      part.second.pop_front();
+
       transform = ur10.getTransfrom("/world", itr);
 
       target.position.x = transform.getOrigin().x();
@@ -125,10 +139,34 @@ int main(int argc, char** argv) {
       target.position.z = transform.getOrigin().z();
 
       ROS_INFO_STREAM(">>>>>>>" << itr);
-      ur10.pickAndPlace(target);
+      // <<<<<<< HEAD
+
+      //       auto success = ur10.pickAndPlace(target);
+
+      //       if (!success) {
+      //         part.second.push_front(mangement.getPart(part.first));
+      //         ur10.goToStart();
+      //       }
+      // =======
+      bool success = ur10.pickAndPlace(target);
+
+      ROS_ERROR_STREAM("pick and Place >>>>>>>>>" << success << std::endl);
+
+      while (!success) {
+        ROS_INFO_STREAM("Finding Replacement");
+        auto replacement = management.getPart(part.first);
+
+        transform = ur10.getTransfrom("/world", replacement);
+
+        target.position.x = transform.getOrigin().x();
+        target.position.y = transform.getOrigin().y();
+        target.position.z = transform.getOrigin().z();
+
+        ROS_INFO_STREAM(">>>>>>>" << replacement);
+        success = ur10.pickAndPlace(target);
+      }
     }
   }
-
   send_order(node);
 
   end_competition(node);
