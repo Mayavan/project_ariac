@@ -141,6 +141,7 @@ void UR10_Control::goToStart() {
 }
 
 bool UR10_Control::place() {
+  ros::Rate rate(1);
   std::vector<std::vector<double>> poses = {
       {1.76, 0.38, -1.38, 2.76, 3.27, -1.51, 0.00}};  //,
   // {2.76, 0.38, -1.38, 1.5, 3.27, -1.51, 0.00},
@@ -157,7 +158,17 @@ bool UR10_Control::place() {
   this->move();
   // if gripper attached false before placing return
   // placing failed report
-  if (gripper_state_.attached = false) return false;
+  ros::spinOnce();
+  rate.sleep();
+
+  if (gripper_state_.attached == false) {
+    for (const auto& itr : poses) {
+      ur10_.setJointValueTarget(itr);
+      this->move();
+      ros::Duration(0.5).sleep();
+    }
+    return false;
+  }
 
   this->gripperAction(gripper::OPEN);
 
@@ -179,7 +190,7 @@ void UR10_Control::gripperAction(const bool action) {
 
   gripper_.call(srv);
 
-  ros::Duration(0.5).sleep();
+  ros::Duration(1).sleep();
 
   if (srv.response.success)
     ROS_INFO_STREAM("Gripper Action Successfully Exicuted!");
@@ -190,7 +201,7 @@ void UR10_Control::gripperAction(const bool action) {
 bool UR10_Control::gripperPickup(const bool action) {
   this->gripperAction(action);
 
-  ros::Rate rate(0.1);
+  ros::Rate rate(0.5);
   int count = 0;
   double Delta = 0.005;
 

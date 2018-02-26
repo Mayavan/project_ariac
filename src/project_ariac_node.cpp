@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
 
       auto success = ur10.pickAndPlace(target);
 
-      if (!success){
+      if (!success) {
         part.second.push_front(mangement.getPart(part.first));
         ur10.goToStart();
       }
