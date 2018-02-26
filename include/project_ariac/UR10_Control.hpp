@@ -41,8 +41,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include <trajectory_msgs/JointTrajectory.h>
-#include <vector>
 #include <string>
+#include <vector>
 
 class UR10_Control {
  public:
@@ -50,18 +50,21 @@ class UR10_Control {
   ~UR10_Control();
   void setTarget(const geometry_msgs::Pose& target);
   void gripperAction(const bool action);
-  bool gripperPickup(const bool action, const geometry_msgs::Pose& target_);
-  void gripperStatusCallback(const osrf_gear::VacuumGripperState::ConstPtr& gripper_status);
+  bool gripperPickup(const bool action);
+  void gripperStatusCallback(
+      const osrf_gear::VacuumGripperState::ConstPtr& gripper_status);
   void move();
   void goToStart();
-  void place();
+  bool place();
   tf::StampedTransform getTransfrom(const std::string& src,
                                     const std::string& target);
-  void pickAndPlace(const geometry_msgs::Pose& target_);
+  bool pickAndPlace(const geometry_msgs::Pose& target_);
 
  protected:
   bool plan();
-  void gripperStatus(const osrf_gear::VacuumGripperState::ConstPtr& gripper_status);
+  void gripperStatus(
+      const osrf_gear::VacuumGripperState::ConstPtr& gripper_status);
+
  private:
   moveit::planning_interface::MoveGroupInterface ur10_;
   moveit::planning_interface::MoveGroupInterface::Plan planner_;
@@ -72,6 +75,7 @@ class UR10_Control {
   std::vector<double> starting_joint_angle_;
   ros::Subscriber gripper_callback_;
   bool gripper_attached_;
+  osrf_gear::VacuumGripperState gripper_state_;
 };
 
 namespace gripper {

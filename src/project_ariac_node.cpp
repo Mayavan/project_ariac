@@ -89,7 +89,15 @@ int main(int argc, char** argv) {
   ros::NodeHandle node;
   ros::NodeHandle private_node_handle("~");
 
+  bool run;
+  private_node_handle.param("run", run, false);
+
   UR10_Control ur10(private_node_handle);
+
+  if (run) {
+    ur10.goToStart();
+    return 0;
+  }
 
   Manager mangement(node);
 
@@ -115,9 +123,15 @@ int main(int argc, char** argv) {
   geometry_msgs::Pose target;
   tf::StampedTransform transform;
 
-  for (const auto& part : mangement.getOrder()) {
+  auto order = mangement.getOrder();
+  // remove const to modify part
+  for (auto& part : order) {
     ROS_INFO_STREAM(part.first);
-    for (const auto& itr : part.second) {
+    while (!part.second.empty()) {
+      //   for (const auto& itr : part.second) {
+      auto itr = part.second.front();
+      part.second.pop_front();
+
       transform = ur10.getTransfrom("/world", itr);
 
       target.position.x = transform.getOrigin().x();
@@ -125,7 +139,13 @@ int main(int argc, char** argv) {
       target.position.z = transform.getOrigin().z();
 
       ROS_INFO_STREAM(">>>>>>>" << itr);
-      ur10.pickAndPlace(target);
+
+      auto success = ur10.pickAndPlace(target);
+
+      if (!success){
+        part.second.push_front(mangement.getPart(part.first));
+        ur10.goToStart();
+      }
     }
   }
 

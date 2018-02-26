@@ -1,4 +1,24 @@
 <?xml version="1.0"?>
 <launch>
-    <node pkg = "osrf_gear" name ="gear" type="gear.py" args="-f `catkin_find --share osrf_gear`/config/qual1a.yaml `catkin_find --share project_ariac`/config/qual1a_config.yaml"/>
+    <arg name="test" default="false"/>
+
+    <include file="$(find ur10_moveit_config)/launch/ur10_moveit_planning_execution.launch">
+        <arg name = "sim" value="true"/>
+    </include>
+
+    <node name = "project_ariac_node" pkg="project_ariac" type = "project_ariac_node" output = "screen">
+        <param name="run" value="$(arg test)"/>
+        <param name = "elbow_joint" value = "0.75" />
+        <param name = "linear_arm_actuator_joint" value = "3" />
+        <param name = "shoulder_lift_joint" value = "-1.2" />
+        <param name = "shoulder_pan_joint" value = "2.3" />
+        <param name = "wrist_1_joint" value = "3.6" />
+        <param name = "wrist_2_joint" value = "4.7" />
+        <param name = "wrist_3_joint" value = "0" />
+        <param name = "z_offSet_pickUp" value = "0.020" />
+        <param name = "planner" value ="RRTConnectkConfigDefault"/>
+        <param name = "planning_time" value="2.5"/>
+        <parma name = "planning_attempt" value="20"/>
+    </node>
+
 </launch>

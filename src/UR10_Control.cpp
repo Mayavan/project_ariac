@@ -45,7 +45,7 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
   server.param("wrist_2_joint", starting_joint_angle_[5], 4.7);
   server.param("wrist_3_joint", starting_joint_angle_[6], 0.0);
 
-  server.param("z_offSet_pickUp", z_offSet_pickUp_, 0.026);
+  server.param("z_offSet_pickUp", z_offSet_pickUp_, 0.030);
 
   std::string planner;
   server.param<std::string>("planner", planner, "RRTConnectkConfigDefault");
@@ -91,12 +91,13 @@ tf::StampedTransform UR10_Control::getTransfrom(const std::string& src,
                                                 const std::string& target) {
   tf::StampedTransform transform;
   tf::TransformListener listener;
+
   listener.waitForTransform(src, target, ros::Time(0), ros::Duration(20));
   try {
     listener.lookupTransform(src, target, ros::Time(0), transform);
   } catch (tf::TransformException& ex) {
     ROS_ERROR("%s", ex.what());
-    ros::Duration(1.0).sleep();
+    ros::Duration(0.5).sleep();
   }
 
   return transform;
@@ -138,7 +139,8 @@ void UR10_Control::goToStart() {
   this->move();
   ros::Duration(0.5).sleep();
 }
-void UR10_Control::place() {
+
+bool UR10_Control::place() {
   std::vector<std::vector<double>> poses = {
       {1.76, 0.38, -1.38, 2.76, 3.27, -1.51, 0.00}};  //,
   // {2.76, 0.38, -1.38, 1.5, 3.27, -1.51, 0.00},
@@ -153,6 +155,9 @@ void UR10_Control::place() {
 
   this->setTarget(agv_);
   this->move();
+  // if gripper attached false before placing return
+  // placing failed report
+  if (gripper_state_.attached = false) return false;
 
   this->gripperAction(gripper::OPEN);
 
@@ -163,6 +168,8 @@ void UR10_Control::place() {
     this->move();
     ros::Duration(0.5).sleep();
   }
+
+  return true;
 }
 
 void UR10_Control::gripperAction(const bool action) {
@@ -180,55 +187,63 @@ void UR10_Control::gripperAction(const bool action) {
     ROS_ERROR("Gripper Action Failed!");
 }
 
-bool UR10_Control::gripperPickup(const bool action, const geometry_msgs::Pose& target){
+bool UR10_Control::gripperPickup(const bool action) {
+  this->gripperAction(action);
+
   ros::Rate rate(0.1);
-
-  ROS_INFO("Setting Target..");
-  this->setTarget(target);
-  ROS_INFO("Moving");
-  this->move();
-  ROS_INFO("Picking Up");
-
   int count = 0;
-  this->gripperAction(gripper::CLOSE);
+  double Delta = 0.005;
 
-  target_.position = target.position;
+  // Check gripper state first
+  ros::spinOnce();
+  rate.sleep();
 
-  while(!gripper_attached_){
-    ROS_INFO_STREAM("wait for scanning process");
+  while (!gripper_state_.attached) {
+    target_.position.z -= Delta;
 
-    target_.position.z -= 0.01;
+    ROS_INFO_STREAM("Picking up:" << target_.position.z << " count:" << count);
 
+    if (count > z_offSet_pickUp_ / Delta) break;
     count++;
 
-    if (count > z_offSet_pickUp_/0.01)
-      break;
-    this->setTarget(target);
+    // this->setTarget(target_); // logical mistake
+    // we are adding offset while set target
     this->move();
 
+    // Wait for gripper state call back
     ros::spinOnce();
     rate.sleep();
   }
-  return gripper_attached_;
-}
 
+  return gripper_state_.attached;
+}
 
 void UR10_Control::gripperStatusCallback(
     const osrf_gear::VacuumGripperState::ConstPtr& gripper_status) {
-
-  gripper_attached_=gripper_status->attached;
+  gripper_state_.attached = gripper_status->attached;
+  gripper_state_.enabled = gripper_status->enabled;
 }
 
-void UR10_Control::pickAndPlace(const geometry_msgs::Pose& target_) {
+bool UR10_Control::pickAndPlace(const geometry_msgs::Pose& target_) {
   // ur10.goToStart();
+  ROS_INFO("Setting Target..");
+  this->setTarget(target_);
 
-  this->gripperPickup(gripper::CLOSE, target_);
+  ROS_INFO("Moving");
+  this->move();
+
+  ROS_INFO("Picking Up");
+
+  auto result = this->gripperPickup(gripper::CLOSE);
+  // if gripper not able to pick
+  if (!result) return result;
+
   ROS_INFO("Placing");
-
   this->goToStart();
-
-  this->place();
+  result = this->place();
 
   ROS_INFO("Home");
   this->goToStart();
+
+  return result;
 }
