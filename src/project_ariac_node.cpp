@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  Manager mangement(node);
+  Manager management(node);
 
   ROS_INFO_STREAM("Manager is ready");
   ros::Rate rate(1.0);
@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
   geometry_msgs::Pose target;
   tf::StampedTransform transform;
 
-  auto order = mangement.getOrder();
+  auto order = management.getOrder();
   // remove const to modify part
   for (auto& part : order) {
     ROS_INFO_STREAM(part.first);
@@ -151,15 +151,15 @@ int main(int argc, char** argv) {
       bool success = ur10.pickAndPlace(target);
       if (!success) {
         ROS_INFO_STREAM("Finding Replacement");
-        auto part = management.getPart(part.first);
+        auto replacement = management.getPart(part.first);
 
-        transform = ur10.getTransfrom("/world", part);
+        transform = ur10.getTransfrom("/world", replacement);
 
         target.position.x = transform.getOrigin().x();
         target.position.y = transform.getOrigin().y();
         target.position.z = transform.getOrigin().z();
 
-        ROS_INFO_STREAM(">>>>>>>" << part);
+        ROS_INFO_STREAM(">>>>>>>" << replacement);
         success = ur10.pickAndPlace(target);
       }
     }

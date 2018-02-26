@@ -117,7 +117,7 @@ std::string Manager::getPart(const std::string& partType) {
 //    replace_order_[type].push_back(inventory_[type].front());
 //    inventory_[type].pop_front();
 //    return replace_order_;
-// }
+}
 
 bool Manager::isReady() { return l1_flag_ && l2_flag_; }
 
