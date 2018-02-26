@@ -157,6 +157,10 @@ bool UR10_Control::place() {
   this->move();
   // if gripper attached false before placing return
   // placing failed report
+  ros::Rate rate(0.5);
+  ros::spinOnce();
+  rate.sleep();
+
   if (gripper_state_.attached = false) return false;
 
   this->gripperAction(gripper::OPEN);
