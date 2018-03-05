@@ -1,0 +1,953 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#"
+     xml:base="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canControl -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canControl"/>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canDetect -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canDetect">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canEnd -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canEnd"/>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canHave -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canHave"/>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canManage -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canManage"/>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canStart -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canStart"/>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#isAttached -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#isAttached">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#isAttached"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+            </owl:Restriction>
+        </rdfs:domain>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#isOnTopOf -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#isOnTopOf">
+        <rdfs:domain>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#isOnTopOf"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Parts"/>
+            </owl:Restriction>
+        </rdfs:domain>
+        <rdfs:range>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#isOnTopOf"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#AGV"/>
+            </owl:Restriction>
+        </rdfs:range>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#maybe -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#maybe">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Availability -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Availability"/>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#ID -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#ID">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Orientation -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Orientation">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Pose"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Pose -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Pose">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Position -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Position">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Pose"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Type -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Type"/>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#angle_increment -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#angle_increment">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#angle_max -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#angle_max">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#angle_min -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#angle_min">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#field_of_view -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#field_of_view">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#hasEnded -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#hasEnded">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#hasStarted -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#hasStarted">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#intensities -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#intensities">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#isAttached -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#isAttached">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#max_range -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#max_range">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#min_range -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#min_range">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#objectDetected -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#objectDetected"/>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#radiation_type -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#radiation_type">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#ranges -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#ranges">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#scan_time -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#scan_time">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#state -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#state">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#time_increment -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#time_increment">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#AGV -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#AGV">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Environment"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Availability"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#ID"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Abstract_Things -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Abstract_Things"/>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Competition -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Competition">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Abstract_Things"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Environment -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Environment">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canHave"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Location"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Bins -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Bins">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Environment"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Break_Beam -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Break_Beam">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Sensors"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#max_range"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#min_range"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#objectDetected"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Controller -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Controller">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Abstract_Things"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Conveyer -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Conveyer">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Environment"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canHave"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Parts"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#state"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Current -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Current">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Planner"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Pose"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">7</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Gripper -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Gripper">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Robot"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#isAttached"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Parts"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#state"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Inventory -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Inventory">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Abstract_Things"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canHave"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Parts"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Joints -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Joints">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Robot"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Kit -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Kit">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Order"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Laser_Profiler -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Laser_Profiler">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Sensors"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#intensities"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#ranges"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#angle_increment"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#angle_max"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#angle_min"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#max_range"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#min_range"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#scan_time"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#time_increment"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Location -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Location">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Abstract_Things"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Pose"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">7</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Logical_Camera -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Logical_Camera">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Sensors"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canDetect"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Parts"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#MainNode -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#MainNode">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Controller"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canControl"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#AGV"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canControl"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Conveyer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canControl"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Manager"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canControl"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Planner"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canControl"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Robot"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canControl"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Sensors"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canEnd"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Competition"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canEnd"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Manager"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canEnd"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Planner"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canStart"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Competition"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canStart"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Manager"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canStart"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Planner"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Manager -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Manager">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Controller"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canManage"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Sensors"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canManage"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Inventory"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Obstacles -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Obstacles">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Environment"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Order -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Order">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Abstract_Things"/>
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Competition"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Parts -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Parts">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#AGV"/>
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Bins"/>
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Kit"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#isOnTopOf"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#AGV"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#isOnTopOf"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Bins"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#isOnTopOf"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Conveyer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Planner -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Planner">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Controller"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canControl"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Robot"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Type"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Proximity_Sensor -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Proximity_Sensor">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Sensors"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#field_of_view"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#max_range"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#min_range"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#radiation_type"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Quality_Control -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Quality_Control">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Sensors"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#canDetect"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Parts"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Robot -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Robot">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Environment"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Sensors -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Sensors">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Environment"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Availability"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#ID"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Target -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Target">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Planner"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Pose"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">7</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#AGV_1 -->
+
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#AGV_1">
+        <rdf:type rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#AGV"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#AGV_2 -->
+
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#AGV_2">
+        <rdf:type rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#AGV"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Gear -->
+
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Gear">
+        <rdf:type rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Parts"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Piston -->
+
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Piston">
+        <rdf:type rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Parts"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#qual1a -->
+
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#qual1a">
+        <rdf:type rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Competition"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#qual1b -->
+
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#qual1b">
+        <rdf:type rdf:resource="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Competition"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // General axioms
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#AGV"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Bins"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Obstacles"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Parts"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Robot"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Sensors"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Ariac_Competition"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Controller"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#MainNode"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Manager"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Planner"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Break_Beam"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Logical_Camera"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Proximity_Sensor"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/mayavan/ontologies/2018/2/untitled-ontology-7#Quality_Control"/>
+        </owl:members>
+    </rdf:Description>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.2.8.20170104-2310) https://github.com/owlcs/owlapi -->
+
