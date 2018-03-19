@@ -10,9 +10,9 @@
         <param name="run" value="$(arg test)"/>
         <param name = "elbow_joint" value = "0.75" />
         <param name = "linear_arm_actuator_joint" value = "3" />
-        <param name = "shoulder_lift_joint" value = "-1.2" />
-        <param name = "shoulder_pan_joint" value = "2.3" />
-        <param name = "wrist_1_joint" value = "3.6" />
+        <param name = "shoulder_lift_joint" value = "-1.1" />
+        <param name = "shoulder_pan_joint" value = "1.9" />
+        <param name = "wrist_1_joint" value = "3.9" />
         <param name = "wrist_2_joint" value = "4.7" />
         <param name = "wrist_3_joint" value = "0" />
         <param name = "z_offSet_pickUp" value = "0.020" />
