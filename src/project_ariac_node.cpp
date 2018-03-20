@@ -2,7 +2,7 @@
 /**
  * @file project_ariac_node.cpp
  * @author     Ravi Bhadeshiya
- * @version    1.0
+ * @version    2.0
  * @brief      The main node for project_ariac
  *
  * @copyright  BSD 3-Clause License (c) 2018 Ravi Bhadeshiya
@@ -99,59 +99,9 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  Manager mangement(node);
+  // send_order(node);
 
-  ROS_INFO_STREAM("Manager is ready");
-  ros::Rate rate(1.0);
-
-  while (!mangement.isReady()) {
-    ROS_INFO_STREAM("wait for scanning process");
-    ros::spinOnce();
-    rate.sleep();
-  }
-
-  ROS_INFO_STREAM("Starting competition");
-
-  start_competition(node);
-
-  while (!mangement.isOrderReady()) {
-    ROS_INFO_STREAM("wait for order");
-    ros::spinOnce();
-    rate.sleep();
-  }
-
-  geometry_msgs::Pose target;
-  tf::StampedTransform transform;
-
-  auto order = mangement.getOrder();
-  // remove const to modify part
-  for (auto& part : order) {
-    ROS_INFO_STREAM(part.first);
-    while (!part.second.empty()) {
-      //   for (const auto& itr : part.second) {
-      auto itr = part.second.front();
-      part.second.pop_front();
-
-      transform = ur10.getTransfrom("/world", itr);
-
-      target.position.x = transform.getOrigin().x();
-      target.position.y = transform.getOrigin().y();
-      target.position.z = transform.getOrigin().z();
-
-      ROS_INFO_STREAM(">>>>>>>" << itr);
-
-      auto success = ur10.pickAndPlace(target);
-
-      if (!success) {
-        part.second.push_front(mangement.getPart(part.first));
-        ur10.goToStart();
-      }
-    }
-  }
-
-  send_order(node);
-
-  end_competition(node);
+  // end_competition(node);
 
   return 0;
 }

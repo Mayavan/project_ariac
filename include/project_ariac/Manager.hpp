@@ -34,37 +34,38 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <geometry_msgs/PoseArray.h>
-#include <moveit/move_group_interface/move_group_interface.h>
 #include <osrf_gear/LogicalCameraImage.h>
 #include <osrf_gear/Order.h>
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include <list>
 #include <map>
+#include <memory>
 #include <string>
 
-using database = std::map<std::string, std::list<std::string>>;
+typedef osrf_gear::LogicalCameraImage::ConstPtr CameraMsg;
+typedef Sensor<CameraMsg> Camera;
+typedef std::shared_ptr<Camera> CameraPtr;
+
+typedef osrf_gear::Order::ConstPtr OrderMsg;
+typedef Sensor<OrderMsg> Order;
+typedef std::shared_ptr<Order> OrderPtr;
+
+typedef std::shared_ptr<ros::NodeHandle> NodePtr;
+typedef std::shared_ptr<ros::Rate> RatePtr;
+typedef std::map<std::string, std::list<std::string>> Database;
 
 class Manager {
- public:
-  Manager(ros::NodeHandle& nh);
+  explicit Manager(const ros::NodeHandle& nh);
   ~Manager();
-  bool isReady();
-  void print(const database& parts);
-  database getOrder();
-  bool isOrderReady();
+  void checkInventory();
+  void finishOrder();
   std::string getPart(const std::string& partType);
 
- protected:
-  void logical_camera_callback_1(
-      const osrf_gear::LogicalCameraImage::ConstPtr &image_msg);
-  void logical_camera_callback_2(
-      const osrf_gear::LogicalCameraImage::ConstPtr &image_msg);
-  void order_callback(const osrf_gear::Order::ConstPtr &order_msg);
-
  private:
-  ros::Subscriber logical_camera_1_, logical_camera_2_, orders_subscriber_;
-  database inventory_, order_;
-  ros::NodeHandle nh_;
-  bool l1_flag_ = false, l2_flag_ = false, order_complete_ = false;
+  NodePtr nh_;
+  CameraPtr logical_camera_1_, logical_camera_2_;
+  OrderPtr order_manager_;
+  RatePtr rate;
+  Database inventory_
 };

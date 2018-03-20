@@ -1,7 +1,7 @@
 /**
  * @file Manager.cpp
  * @author     Ravi Bhadeshiya
- * @version    0.1
+ * @version    2.0
  * @brief      Class for controlling ariac order
  *
  * @copyright  BSD 3-Clause License (c) 2018 Ravi Bhadeshiya
@@ -34,76 +34,69 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "project_ariac/Manager.hpp"
 
-Manager::Manager(ros::NodeHandle& nh) : nh_(nh) {
-  logical_camera_1_ = nh_.subscribe("/ariac/logical_camera_1", 10,
-                                    &Manager::logical_camera_callback_1, this);
-
-  logical_camera_2_ = nh_.subscribe("/ariac/logical_camera_2", 10,
-                                    &Manager::logical_camera_callback_2, this);
-
-  orders_subscriber_ =
-      nh_.subscribe("/ariac/orders", 10, &Manager::order_callback, this);
-
-  // ROS_INFO_STREAM("Init");
+Manager::Manager(const ros::NodeHandle& nh) {
+  nh_ = std::make_shared<ros::NodeHandle>(nh);
+  rate = std::make_shared<ros::Rate>(0.5);
+  // Init Camera to see
+  logical_camera_1_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_1");
+  logical_camera_2_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_2");
+  // Init order manager
+  order_manager_ = std::make_shared<Order>(nh, "/ariac/orders");
+  ROS_DEBUG_STREAM("Manager is init..");
 }
 
 Manager::~Manager() {}
 
-void Manager::print(const database& parts) {
-  ROS_INFO_STREAM("size:" << parts.size());
-  for (const auto& i : parts) {
-    ROS_INFO_STREAM(i.first);
-    for (const auto& j : i.second) {
-      ROS_INFO_STREAM(j);
-    }
+void Manager::checkInventory() {
+  // Wait until camera see
+  while (!logical_camera_1_->isPopulated() &&
+         !logical_camera_2_->isPopulated()) {
+    ROS_INFO_STREAM("Scanning the item");
+    ros::spinOnce();
+    rate->sleep();
   }
-}
 
-void Manager::logical_camera_callback_1(
-    const osrf_gear::LogicalCameraImage::ConstPtr& image_msg) {
-  // ROS_INFO_STREAM("logical_camera_1 in");
-  if (l1_flag_) return;
+  // reset inventory for update
+  inventory_.clear();
+
+  // add parts from Camera 1
   size_t count = 1;
-  for (const auto& itr : image_msg->models) {
+  auto image_msg = logical_camera_1_->getMessage();
+  for (const auto& part : image_msg->models) {
     std::string partFrame =
-        "logical_camera_1_" + itr.type + "_" + std::to_string(count) + "_frame";
-    inventory_[itr.type].push_back(partFrame);
+        "logical_camera_1_" + part.type + "_" + std::to_string(count) + "_frame";
+    inventory_[part.type].push_back(partFrame);
     count++;
   }
-  ROS_INFO_STREAM("logical_camera_1 complete");
-  // print(inventory_);
-  l1_flag_ = true;
-}
 
-void Manager::logical_camera_callback_2(
-    const osrf_gear::LogicalCameraImage::ConstPtr& image_msg) {
-  // ROS_INFO_STREAM("logical_camera_2 in");
-  if (l2_flag_) return;
+  // add parts from Camera 2
   size_t count = 1;
-  for (const auto& itr : image_msg->models) {
+  auto image_msg = logical_camera_2_->getMessage();
+  for (const auto& part : image_msg->models) {
     std::string partFrame =
-        "logical_camera_2_" + itr.type + "_" + std::to_string(count) + "_frame";
-    inventory_[itr.type].push_back(partFrame);
+        "logical_camera_2_" + part.type + "_" + std::to_string(count) + "_frame";
+    inventory_[part.type].push_back(partFrame);
     count++;
   }
-  ROS_INFO_STREAM("logical_camera_2 complete");
-  // print(inventory_);
-  l2_flag_ = true;
 }
 
-void Manager::order_callback(const osrf_gear::Order::ConstPtr& order_msg) {
-  ROS_INFO_STREAM("order callback in");
+void Manager::finishOrder() {
+  // wait for order
+  while (!order_manager_->isPopulated()) {
+    ROS_INFO_STREAM("Waiting for order");
+    ros::spinOnce();
+    rate->sleep();
+  }
+  auto order_msg = order_manager_->getMessage();
   for (const auto& kit : order_msg->kits) {
-    for (const auto& itr : kit.objects) {
-      // order_[itr.type].push_back(inventory_[itr.type].front());
-      // inventory_[itr.type].pop_front();
-      order_[itr.type].push_back(getPart(itr.type));
+    for (const auto& part : kit.objects) {
+// TODO(ravib)
+      sucess = false;
+      do {
+        // sucess = ur10 pick and place action using getPart(part.type);
+      } while (!sucess);
     }
   }
-  ROS_INFO_STREAM("order callback complete");
-  // print(order_);
-  order_complete_ = true;
-  // }
 }
 
 std::string Manager::getPart(const std::string& partType) {
@@ -111,9 +104,3 @@ std::string Manager::getPart(const std::string& partType) {
   inventory_[partType].pop_front();
   return part;
 }
-
-bool Manager::isReady() { return l1_flag_ && l2_flag_; }
-
-database Manager::getOrder() { return order_; }
-
-bool Manager::isOrderReady() { return order_complete_; }
