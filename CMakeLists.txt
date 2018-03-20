@@ -38,6 +38,12 @@ add_dependencies(project_ariac_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin
 target_link_libraries(project_ariac_node ${catkin_LIBRARIES})
 
 
+add_executable(sensor src/Node.cpp)
+
+add_dependencies(sensor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_generate_messages_cpp})
+
+target_link_libraries(sensor ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############
