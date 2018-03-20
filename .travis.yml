@@ -19,7 +19,12 @@ install:
   - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" /etc/apt/sources.list.d/ros-latest.list'
   - sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net --recv-key 0xB01FA116
   - sudo apt-get update
-  - sudo apt-get install ariac
+  - mkdir -p ~/ariac_ws/src
+  - cd ~/ariac_ws/src
+  - git clone https://bitbucket.org/osrf/ariac -b ariac_2017
+  - cd ~/ariac_ws
+  - catkin_make install
+  - source ~/ariac_ws/install/setup.bash
   - git clone https://github.com/ros-industrial/industrial_ci.git .ci_config
 script:
   - source .ci_config/travis.sh
