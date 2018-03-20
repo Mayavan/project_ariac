@@ -43,6 +43,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <string>
 
+#include "project_ariac/Sensor.hpp"
+
 typedef osrf_gear::LogicalCameraImage::ConstPtr CameraMsg;
 typedef Sensor<CameraMsg> Camera;
 typedef std::shared_ptr<Camera> CameraPtr;
@@ -67,5 +69,5 @@ class Manager {
   CameraPtr logical_camera_1_, logical_camera_2_;
   OrderPtr order_manager_;
   RatePtr rate;
-  Database inventory_
+  Database inventory_;
 };

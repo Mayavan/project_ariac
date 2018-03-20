@@ -70,8 +70,8 @@ void Manager::checkInventory() {
   }
 
   // add parts from Camera 2
-  size_t count = 1;
-  auto image_msg = logical_camera_2_->getMessage();
+  count = 1;
+  image_msg = logical_camera_2_->getMessage();
   for (const auto& part : image_msg->models) {
     std::string partFrame =
         "logical_camera_2_" + part.type + "_" + std::to_string(count) + "_frame";
@@ -87,6 +87,7 @@ void Manager::finishOrder() {
     ros::spinOnce();
     rate->sleep();
   }
+  bool sucess;
   auto order_msg = order_manager_->getMessage();
   for (const auto& kit : order_msg->kits) {
     for (const auto& part : kit.objects) {
