@@ -7,7 +7,7 @@
  *
  * @copyright  BSD 3-Clause License (c) 2018 Ravi Bhadeshiya
  **/
-
+#include <ros/ros.h>
 #include "project_ariac/Manager.hpp"
 #include "project_ariac/UR10_Control.hpp"
 
@@ -22,10 +22,14 @@ int main(int argc, char** argv) {
 
   UR10_Control ur10(private_node_handle);
 
-  if (run) {
-    ur10.goToStart();
-    return 0;
-  }
+  geometry_msgs::Pose target;
+  target.position.x = -0.5;
+  target.position.y = -0.735;
+  target.position.z = 0.724;
+
+  ur10.move(target);
+  ros::spin();
+  if (run) return 0;
 
   Manager m(node);
   m.start_competition();

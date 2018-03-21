@@ -18,7 +18,7 @@
         <param name = "z_offSet_pickUp" value = "0.020" />
         <param name = "planner" value ="RRTConnectkConfigDefault"/>
         <param name = "planning_time" value="2.5"/>
-        <parma name = "planning_attempt" value="20"/>
+        <parma name = "planning_attempt" value="1"/>
     </node>
 
 </launch>
