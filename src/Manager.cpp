@@ -36,8 +36,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Manager::Manager(const ros::NodeHandle& nh) {
   nh_ = std::make_shared<ros::NodeHandle>(nh);
-  rate = std::make_shared<ros::Rate>(0.5);
-  // Init Camera to see
+  rate_ = std::make_shared<ros::Rate>(0.5);
+  // Init Cameras
   logical_camera_1_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_1");
   logical_camera_2_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_2");
   // Init order manager
@@ -45,7 +45,7 @@ Manager::Manager(const ros::NodeHandle& nh) {
   ROS_DEBUG_STREAM("Manager is init..");
 }
 
-Manager::~Manager() {}
+Manager::~Manager() { inventory_.clear(); }
 
 void Manager::checkInventory() {
   // Wait until camera see
@@ -53,7 +53,7 @@ void Manager::checkInventory() {
          !logical_camera_2_->isPopulated()) {
     ROS_INFO_STREAM("Scanning the item");
     ros::spinOnce();
-    rate->sleep();
+    rate_->sleep();
   }
 
   // reset inventory for update
@@ -63,8 +63,9 @@ void Manager::checkInventory() {
   size_t count = 1;
   auto image_msg = logical_camera_1_->getMessage();
   for (const auto& part : image_msg->models) {
-    std::string partFrame =
-        "logical_camera_1_" + part.type + "_" + std::to_string(count) + "_frame";
+    std::string partFrame = "logical_camera_1_" + part.type + "_" +
+                            std::to_string(count) + "_frame";
+    ROS_DEBUG_STREAM(partFrame);
     inventory_[part.type].push_back(partFrame);
     count++;
   }
@@ -73,8 +74,9 @@ void Manager::checkInventory() {
   count = 1;
   image_msg = logical_camera_2_->getMessage();
   for (const auto& part : image_msg->models) {
-    std::string partFrame =
-        "logical_camera_2_" + part.type + "_" + std::to_string(count) + "_frame";
+    std::string partFrame = "logical_camera_2_" + part.type + "_" +
+                            std::to_string(count) + "_frame";
+    ROS_DEBUG_STREAM(partFrame);
     inventory_[part.type].push_back(partFrame);
     count++;
   }
@@ -83,18 +85,20 @@ void Manager::checkInventory() {
 void Manager::finishOrder() {
   // wait for order
   while (!order_manager_->isPopulated()) {
-    ROS_INFO_STREAM("Waiting for order");
+    ROS_WARN_STREAM("Waiting for order");
     ros::spinOnce();
-    rate->sleep();
+    rate_->sleep();
   }
+
   bool sucess;
   auto order_msg = order_manager_->getMessage();
   for (const auto& kit : order_msg->kits) {
     for (const auto& part : kit.objects) {
-// TODO(ravib)
+      // TODO(ravib)
       sucess = false;
       do {
         // sucess = ur10 pick and place action using getPart(part.type);
+        sucess = true;
       } while (!sucess);
     }
   }
@@ -104,4 +108,72 @@ std::string Manager::getPart(const std::string& partType) {
   std::string part = inventory_[partType].front();
   inventory_[partType].pop_front();
   return part;
+}
+
+/// Start the competition by waiting for and then calling the start ROS Service.
+void Manager::start_competition(std::string topic) const {
+  // Create a Service client for the correct service, i.e.
+  // '/ariac/start_competition'.
+  ros::ServiceClient start_client =
+      nh_->serviceClient<std_srvs::Trigger>(topic);
+  // If it's not already ready, wait for it to be ready.
+  // Calling the Service using the client before the server is ready would fail.
+  if (!start_client.exists()) {
+    ROS_INFO("Waiting for the competition to be ready...");
+    start_client.waitForExistence();
+    ROS_INFO("Competition is now ready.");
+  }
+  ROS_INFO("Requesting competition start...");
+  std_srvs::Trigger srv;   // Combination of the "request" and the "response".
+  start_client.call(srv);  // Call the start Service.
+  if (!srv.response.success) {  // If not successful, print out why.
+    ROS_ERROR_STREAM(
+        "Failed to start the competition: " << srv.response.message);
+  } else {
+    ROS_INFO("Competition started!");
+  }
+}
+
+/// End the competition by waiting for and then calling the start ROS Service.
+void Manager::end_competition(std::string topic) const {
+  // Create a Service client for the correct service, i.e.
+  // '/ariac/end_competition'.
+  ros::ServiceClient start_client =
+      nh_->serviceClient<std_srvs::Trigger>(topic);
+  // If it's not already ready, wait for it to be ready.
+  // Calling the Service using the client before the server is ready would fail.
+  if (!start_client.exists()) {
+    ROS_INFO("Waiting for the competition to be ready...");
+    start_client.waitForExistence();
+    ROS_INFO("Competition is now ready to finish.");
+  }
+  ROS_INFO("Requesting competition end...");
+  std_srvs::Trigger srv;   // Combination of the "request" and the "response".
+  start_client.call(srv);  // Call the start Service.
+  if (!srv.response.success) {  // If not successful, print out why.
+    ROS_ERROR_STREAM("Failed to end the competition: " << srv.response.message);
+  } else {
+    ROS_INFO("Competition ended!");
+  }
+}
+
+void Manager::send_order(std::string agv, std::string kit_id) const {
+  // Create a Service client for the correct service, i.e. '/ariac/agv1'.
+  ros::ServiceClient agv_client =
+      nh_->serviceClient<osrf_gear::AGVControl>(agv);
+  // If it's not already ready, wait for it to be ready.
+  // Calling the Service using the client before the server is ready would fail.
+  if (!agv_client.exists()) {
+    ROS_INFO("Waiting for the AGV client to be ready...");
+    agv_client.waitForExistence();
+    ROS_INFO("AGV client is now ready.");
+  }
+  ROS_INFO("Requesting AGV to complete order...");
+  osrf_gear::AGVControl
+      srv;  // Combination of the "request" and the "response".
+  srv.request.kit_type = kit_id;
+  agv_client.call(srv);         // Call the start Service.
+  if (!srv.response.success) {  // If not successful, print out why.
+    ROS_ERROR_STREAM("Failed to send");
+  }
 }

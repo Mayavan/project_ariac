@@ -32,19 +32,23 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #pragma once
-
+// ROS interface
 #include <geometry_msgs/PoseArray.h>
-#include <osrf_gear/LogicalCameraImage.h>
-#include <osrf_gear/Order.h>
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
+// Ariac interface
+#include <osrf_gear/AGVControl.h>
+#include <osrf_gear/LogicalCameraImage.h>
+#include <osrf_gear/Order.h>
+#include <std_srvs/Trigger.h>
+// STL
 #include <list>
 #include <map>
 #include <memory>
 #include <string>
-
+// Custom abstraction
 #include "project_ariac/Sensor.hpp"
-
+// Custom types
 typedef osrf_gear::LogicalCameraImage::ConstPtr CameraMsg;
 typedef Sensor<CameraMsg> Camera;
 typedef std::shared_ptr<Camera> CameraPtr;
@@ -57,17 +61,27 @@ typedef std::shared_ptr<ros::NodeHandle> NodePtr;
 typedef std::shared_ptr<ros::Rate> RatePtr;
 typedef std::map<std::string, std::list<std::string>> Database;
 
+/**
+ * @brief      Class for manager.
+ */
 class Manager {
+ public:
   explicit Manager(const ros::NodeHandle& nh);
   ~Manager();
   void checkInventory();
   void finishOrder();
   std::string getPart(const std::string& partType);
+  // ARIAC interface
+  void start_competition(
+      std::string topic = "/ariac/start_competition") const;
+  void end_competition(std::string topic = "/ariac/end_competition") const;
+  void send_order(std::string agv = "/ariac/agv1",
+                  std::string kit_id = "order_0_kit_0") const;
 
  private:
   NodePtr nh_;
   CameraPtr logical_camera_1_, logical_camera_2_;
   OrderPtr order_manager_;
-  RatePtr rate;
+  RatePtr rate_;
   Database inventory_;
 };
