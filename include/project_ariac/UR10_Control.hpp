@@ -32,7 +32,6 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #pragma once
-
 #include <geometry_msgs/Pose.h>
 #include <ros/ros.h>
 
@@ -41,6 +40,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 #include <osrf_gear/VacuumGripperControl.h>
 #include <osrf_gear/VacuumGripperState.h>
@@ -48,12 +50,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include "project_ariac/Sensor.hpp"
 #include "project_ariac/pickup.h"
 #include "project_ariac/place.h"
 
 typedef osrf_gear::VacuumGripperState::ConstPtr GripperState;
+typedef std::shared_ptr<planning_scene::PlanningScene> PlanningScenePtr;
 
 class UR10_Control {
  public:
@@ -64,10 +68,11 @@ class UR10_Control {
   void move(const geometry_msgs::Pose& target);
   void move(const std::vector<double>& target_joint);
   void move(const std::vector<geometry_msgs::Pose>& waypoints,
-            double velocity_factor = 1.0, double eef_step = 0.1,
+            double velocity_factor = 1.0, double eef_step = 0.01,
             double jump_threshold = 0.0);
   tf::StampedTransform getTransfrom(const std::string& src,
                                     const std::string& target);
+  geometry_msgs::Pose target_, home_, agv_;
 
  protected:
   void gripperStatusCallback(const GripperState& gripper_status);
@@ -78,8 +83,7 @@ class UR10_Control {
 
  private:
   ros::NodeHandle nh_;
-  geometry_msgs::Pose target_, home_, agv_;
-
+  // geometry_msgs::Pose target_, home_, agv_;
   ros::Subscriber gripper_sensor_;
   ros::ServiceServer pickupServer_, placeServer_;
   ros::ServiceClient gripper_;
@@ -88,6 +92,7 @@ class UR10_Control {
 
   moveit::planning_interface::MoveGroupInterface ur10_;
   moveit::planning_interface::MoveGroupInterface::Plan planner_;
+  PlanningScenePtr planning_scene_;
 
   double z_offSet_;
   std::vector<double> home_joint_angle_;

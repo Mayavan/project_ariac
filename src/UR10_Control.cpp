@@ -39,7 +39,7 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
   // Set the planning param
   int planning_attempt;
   double planning_time;
-  std::string planner, end_link, base_link;
+  std::string planner, end_link, base_link, scene_file;
   home_joint_angle_.resize(7);
 
   server.param("elbow_joint", home_joint_angle_[0], 0.0);
@@ -50,20 +50,32 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
   server.param("wrist_2_joint", home_joint_angle_[5], 4.7);
   server.param("wrist_3_joint", home_joint_angle_[6], 0.0);
   server.param("z_offSet_", z_offSet_, 0.030);
-  server.param<std::string>("planner", planner, "RRTConnectkConfigDefault");
   server.param("planning_time", planning_time, 2.5);
   server.param("planning_attempt", planning_attempt, 20);
+  server.param<std::string>("planner", planner, "RRTConnectkConfigDefault");
   server.param<std::string>("end_link", end_link, "/ee_link");
   server.param<std::string>("base_link", base_link, "/world");
+  server.param<std::string>("scene", scene_file, " ");
+
+  // std::fstream file(scene_file);
+  // if (file.good() && !file.eof()) {
+  //   planning_scene_->loadGeometryFromStream(file);
+  // } else {
+  //   ROS_ERROR_STREAM("Unable to load scene file:" << scene_file);
+  // }
 
   ur10_.setPlannerId(planner);
   ur10_.setPlanningTime(planning_time);
   ur10_.setNumPlanningAttempts(planning_attempt);
+  ur10_.allowReplanning(true);
 
   move(home_joint_angle_);  // Home condition
 
   // Find pose of home position
   auto transform = this->getTransfrom(base_link, end_link);
+  home_.position.x = transform.getOrigin().x();
+  home_.position.y = transform.getOrigin().y();
+  home_.position.z = transform.getOrigin().z() - z_offSet_;
   home_.orientation.x = transform.getRotation().x();
   home_.orientation.y = transform.getRotation().y();
   home_.orientation.z = transform.getRotation().z();
@@ -90,7 +102,7 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
   ros::Duration(0.5).sleep();
 }
 
-UR10_Control::~UR10_Control() {}
+UR10_Control::~UR10_Control() { ur10_.stop(); }
 
 tf::StampedTransform UR10_Control::getTransfrom(const std::string& src,
                                                 const std::string& target) {
@@ -109,7 +121,7 @@ tf::StampedTransform UR10_Control::getTransfrom(const std::string& src,
 }
 
 void UR10_Control::move(const geometry_msgs::Pose& target) {
-  ros::AsyncSpinner spinner(4);
+  ros::AsyncSpinner spinner(1);
   spinner.start();
 
   target_.position = target.position;
@@ -150,22 +162,21 @@ void UR10_Control::move(const std::vector<geometry_msgs::Pose>& waypoints,
                         double velocity_factor, double eef_step,
                         double jump_threshold) {
   ros::AsyncSpinner spinner(1);
-  moveit_msgs::RobotTrajectory trajectory;
-
   spinner.start();
 
+  moveit_msgs::RobotTrajectory trajectory;
   ur10_.setMaxVelocityScalingFactor(velocity_factor);
 
   double fraction = ur10_.computeCartesianPath(waypoints, eef_step,
                                                jump_threshold, trajectory);
   planner_.trajectory_ = trajectory;
 
-  if (fraction > 0) {
-    ROS_INFO("Move %.2f%% acheived..", fraction * 100.0);
-    ur10_.move();
-  } else {
-    ROS_WARN("Move failed!");
-  }
+  ROS_INFO("UR10 control Move %.2f%% acheived..", fraction * 100.0);
+
+  ur10_.execute(planner_);
+
+  // Reset speed
+  ur10_.setMaxVelocityScalingFactor(1.0);
 }
 
 void UR10_Control::gripperAction(const bool action) {
@@ -198,7 +209,7 @@ bool UR10_Control::pickupSrvCB(project_ariac::pickup::Request& req,
   gripperAction(gripper::CLOSE);
   // should stop after part is being picked
   gripperPickCheck = true;
-  move({req.target}, 0.2, 0.01);
+  move({req.target}, 0.5, 0.001);  // Grasp move
   gripperPickCheck = false;
   // should attach after motion
   // it means, robot pick up part

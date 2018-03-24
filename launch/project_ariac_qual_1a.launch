@@ -1,12 +1,8 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="test" default="false"/>
-
-    <include file="$(find ur10_moveit_config)/launch/ur10_moveit_planning_execution.launch">
-        <arg name = "sim" value="true"/>
-    </include>
-
-    <node name = "project_ariac_node" pkg="project_ariac" type = "project_ariac_node" output = "screen">
+    <arg name="scene_file" default="$(find project_ariac)/config/ariac.scene"/>
+    <node name = "project_ariac_node" pkg="project_ariac" type = "project_ariac_node" args="--scene=$(arg scene_file)" output = "screen">
         <param name="run" value="$(arg test)"/>
         <oaram name="end_link" value= "/ee_link" />
         <param name="base_link" value= "/world" />
@@ -17,10 +13,11 @@
         <param name = "wrist_1_joint" value = "3.9" />
         <param name = "wrist_2_joint" value = "4.7" />
         <param name = "wrist_3_joint" value = "0" />
-        <param name = "z_offSet_pickUp" value = "0.030" />
+        <param name = "z_offSet_" value = "0.030" />
         <param name = "planner" value ="RRTConnectkConfigDefault"/>
-        <param name = "planning_time" value="2.5"/>
-        <parma name = "planning_attempt" value="20"/>
+        <param name = "planning_time" value="40"/>
+        <parma name = "planning_attempt" value="10"/>
+        <param name = "scene" value="$(arg scene_file)"/>
     </node>
 
 </launch>

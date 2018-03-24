@@ -28,15 +28,17 @@ int main(int argc, char** argv) {
   target.position.z = 0.724;
 
   ur10.move(target);
+  ur10.move({ur10.home_, ur10.agv_});
+
   ros::spin();
   if (run) return 0;
 
-  Manager m(node);
-  m.start_competition();
-  m.checkInventory();
-  m.finishOrder();
-  m.send_order();
-  m.end_competition();
+  // Manager m(node);
+  // m.start_competition();
+  // m.checkInventory();
+  // m.finishOrder();
+  // m.send_order();
+  // m.end_competition();
 
   return 0;
 }

@@ -8,17 +8,19 @@
 
     <node name = "project_ariac_node" pkg="project_ariac" type = "project_ariac_node" output = "screen">
         <param name="run" value="$(arg test)"/>
+        <oaram name="end_link" value= "/ee_link" />
+        <param name="base_link" value= "/world" />
         <param name = "elbow_joint" value = "0.75" />
-        <param name = "linear_arm_actuator_joint" value = "3" />
+        <param name = "linear_arm_actuator_joint" value = "3.1" />
         <param name = "shoulder_lift_joint" value = "-1.1" />
         <param name = "shoulder_pan_joint" value = "1.9" />
         <param name = "wrist_1_joint" value = "3.9" />
         <param name = "wrist_2_joint" value = "4.7" />
         <param name = "wrist_3_joint" value = "0" />
-        <param name = "z_offSet_pickUp" value = "0.020" />
+        <param name = "z_offSet_" value = "0.020" />
         <param name = "planner" value ="RRTConnectkConfigDefault"/>
-        <param name = "planning_time" value="2.5"/>
-        <parma name = "planning_attempt" value="1"/>
+        <param name = "planning_time" value="5"/>
+        <parma name = "planning_attempt" value="10"/>
     </node>
 
 </launch>
