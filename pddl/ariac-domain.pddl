@@ -2,68 +2,80 @@
 
     (:requirements :strips :typing :fluents)
 
-    (:types
-        robot
-        container
-        agvs
-        part
-        order
-    )
+    (:types Robot Tray Bin PartType)
 
     (:functions
-        (No-of-parts-in-order ?order - order)
-        (No-of-part-on-agv ?agv - agvs)
+        (No-of-parts-on-bin ?part - PartType ?bin - Bin)
+        (No-of-parts-on-tray ?tray - Tray)
+        (No-of-parts-in-order ?part - PartType)
     )
 
     (:predicates
-        (orderContain ?order - order ?part - part)
-        (partOnContainer ?part - part ?container - container)
-        (setTarget ?container - container ?part - part)
-        (isRobotAvailable ?robot - robot)
-        (picked ?robot - robot ?part - part)
-        (placeed ?part - part ?agv - agvs)
+        (gripperempty ?robot - Robot)
+        (holding ?robot - Robot ?part - PartType)
+        (robotOverTray ?tray - Tray)
+        (robotOverBin ?bin - Bin ?part - PartType)
     )
 
-    (:action findPart
+    (:action move-over-bin
         :parameters(
-            ?order - order
-            ?part - part
-            ?container - container)
+            ?robot - Robot
+            ?part - PartType
+            ?tray - Tray
+            ?bin - Bin)
         :precondition(and
-            (partOnContainer ?part ?container)
-            ( orderContain ?order ?part))
+            (gripperempty ?robot)
+			(robotOverTray ?tray)
+			(>(No-of-parts-on-bin ?part ?bin)0)
+			)
         :effect(and
-            (setTarget ?container ?part)
-            (not(partOnContainer ?part ?container)))
+        	(not(robotOverTray ?tray))
+			(robotOverBin ?bin ?part))
+    )
+
+    (:action move-over-tray
+        :parameters(
+            ?robot - Robot
+            ?part - PartType
+            ?tray - Tray
+            ?bin - Bin)
+        :precondition(and
+            (robotOverBin ?bin ?part)
+            (holding ?robot ?part))
+        :effect(and
+            (robotOverTray ?tray)
+            (not(robotOverBin ?bin ?part)))
     )
 
     (:action pickup
         :parameters(
-            ?robot - robot
-            ?part - part
-            ?container - container)
+            ?robot - Robot
+            ?part - PartType
+            ?bin - Bin
+            )
         :precondition(and
-            (setTarget ?container ?part)
-            (isRobotAvailable ?robot))
+            (gripperempty ?robot)
+            (robotOverBin ?bin ?part))
         :effect(and
-            (picked ?robot ?part)
-            (not(setTarget ?container ?part))
-            (not(isRobotAvailable ?robot)))
+            (decrease (No-of-parts-on-bin ?part ?bin) 1)
+            (holding ?robot ?part)
+			(not(gripperempty ?robot)))
     )
 
-    (:action place
+    (:action putdown
         :parameters(
-            ?robot - robot
-            ?part - part
-            ?agv - agvs
-            ?order - order)
+            ?robot - Robot
+			?part - PartType
+            ?tray - Tray
+		)
         :precondition(and
-            (picked ?robot ?part))
+			(holding ?robot ?part)
+			(robotOverTray ?tray))
         :effect(and
-            (decrease (No-of-parts-in-order ?order) 1)
-            (increase (No-of-part-on-agv ?agv) 1)
-            (not( orderContain ?order ?part))
-            (not(picked ?robot ?part))
-            (isRobotAvailable ?robot))
-    )
+            (increase (No-of-parts-on-tray ?tray) 1)
+			(decrease (No-of-parts-in-order ?part)1)
+			(gripperempty ?robot)
+			(not(holding ?robot ?part))
+       )
+	)
 )

@@ -67,32 +67,30 @@ int main(int argc, char** argv) {
     if (i.first == "gear_part") gear = i.second.size();
     if (i.first == "piston_rod_part") piston = i.second.size();
   }
+
   std::fstream inputFile(fileName);
   std::stringstream outFile;
   std::fstream finalFinal;
   finalFinal.open(outputDir + "/updated_ariac-problem.pddl", std::ios::out);
+
   if (inputFile.good() && !inputFile.eof()) {
     ROS_INFO_STREAM("File opened!");
     std::string line;
     std::stringstream output;
+
     while (getline(inputFile, line)) {
       std::stringstream ss;
-      auto index = line.find("(=(No-of-parts-in-order order)");
+      auto index = line.find("(=(No-of-parts-in-order gear)");
       if (index != std::string::npos) {
-        ss << "    (=(No-of-parts-in-order order) " << gear + piston << ")"
-           << std::endl;
-        for (size_t i = 1; i <= gear; i++) {
-          ss << "    (orderContain order gear" << i << ")" << std::endl;
-        }
-        for (size_t i = 1; i <= piston; i++) {
-          ss << "    (orderContain order piston" << i << ")" << std::endl;
-        }
+        ss << "    (=(No-of-parts-in-order gear) " << gear << ")";
       }
-      auto index1 = line.find("orderContain");
+      auto index1 = line.find("(=(No-of-parts-in-order piston)");
+      if (index1 != std::string::npos) {
+        ss << "    (=(No-of-parts-in-order piston) " << piston << ")";
+      }
       if (index1 == std::string::npos && index == std::string::npos) ss << line;
       outFile << ss.str() << std::endl;
     }
-    inputFile.close();
     finalFinal << outFile.str();
   } else {
     ROS_ERROR_STREAM("Unable to load file:" << fileName);
