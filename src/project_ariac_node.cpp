@@ -11,7 +11,9 @@
 #include <osrf_gear/AGVControl.h>
 #include <osrf_gear/Order.h>
 #include <std_srvs/Trigger.h>
+#include <stdio.h>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include "project_ariac/Manager.hpp"
 
@@ -54,32 +56,29 @@ int main(int argc, char** argv) {
   Manager manager(node);
 
   while (!manager.isOrderReady()) {
-    ros::Duration(1.0).sleep();
+    ros::Duration(5.0).sleep();
     ros::spinOnce();
   }
 
-  auto order = manager.order_msg_;
-  int gear, piston;
-  for (const auto& kit : order->kits) {
-    for (const auto& itr : kit.objects) {
-      if (itr.type == "gear")
-        gear++;
-      else if (iter.type == "piston")
-        piston++;
-    }
+  auto order = manager.getOrder();
+  int gear = 0, piston = 0;
+  for (const auto& i : order) {
+    ROS_INFO_STREAM(i.first);
+    if (i.first == "gear_part") gear = i.second.size();
+    if (i.first == "piston_rod_part") piston = i.second.size();
   }
-
   std::fstream inputFile(fileName);
   std::stringstream outFile;
-  // std::fstream outFile(outputDir+"/updated_ariac-problem.pddl");
-  if (file.good() && !file.eof()) {
+  std::fstream finalFinal;
+  finalFinal.open(outputDir + "/updated_ariac-problem.pddl", std::ios::out);
+  if (inputFile.good() && !inputFile.eof()) {
     ROS_INFO_STREAM("File opened!");
-    string line;
-    stringstream output;
+    std::string line;
+    std::stringstream output;
     while (getline(inputFile, line)) {
-      stringstream ss;
+      std::stringstream ss;
       auto index = line.find("(=(No-of-parts-in-order order)");
-      if (index != string::npos) {inputFinputFileile
+      if (index != std::string::npos) {
         ss << "    (=(No-of-parts-in-order order) " << gear + piston << ")"
            << std::endl;
         for (size_t i = 1; i <= gear; i++) {
@@ -92,16 +91,14 @@ int main(int argc, char** argv) {
       auto index1 = line.find("orderContain");
       if (index1 == std::string::npos && index == std::string::npos) ss << line;
       outFile << ss.str() << std::endl;
-      ROS_INFO_STREAM(ss.str());
     }
-    inputFile.str(std::string());
-    inputFile << outFile.str();
-    ROS_INFO_STREAM("Done!!");
+    inputFile.close();
+    finalFinal << outFile.str();
   } else {
     ROS_ERROR_STREAM("Unable to load file:" << fileName);
   }
-
   inputFile.close();
-  // outFile.close();
+  finalFinal.close();
+  ROS_INFO_STREAM("Done!!");
   return 0;
 }
