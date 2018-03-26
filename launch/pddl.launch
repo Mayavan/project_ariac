@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+    <node name = "project_ariac_node" pkg="project_ariac" type = "project_ariac_node" output = "screen">
+        <param name="fileName" value="$(find project_ariac)/pddl/ariac-problem.pddl"/>
+        <param name="ouputDir" value="$(find project_ariac)/pddl/"/>
+    </node>
+</launch>

@@ -7,6 +7,8 @@
     </include>
 
     <node name = "project_ariac_node" pkg="project_ariac" type = "project_ariac_node" output = "screen">
+        <param name="fileName" value="$(find project_ariac)/pddl/ariac-problem.pddl"/>
+        <param name="ouputDir" value="$(find project_ariac)/pddl/"/>
         <param name="run" value="$(arg test)"/>
         <param name = "elbow_joint" value = "0" />
         <param name = "linear_arm_actuator_joint" value = "3.1" />

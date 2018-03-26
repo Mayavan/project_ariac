@@ -93,6 +93,7 @@ void Manager::logical_camera_callback_2(
 
 void Manager::order_callback(const osrf_gear::Order::ConstPtr& order_msg) {
   ROS_INFO_STREAM("order callback in");
+  order_msg_  = order_msg;
   for (const auto& kit : order_msg->kits) {
     for (const auto& itr : kit.objects) {
       // order_[itr.type].push_back(inventory_[itr.type].front());

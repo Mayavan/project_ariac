@@ -11,9 +11,9 @@
 #include <osrf_gear/AGVControl.h>
 #include <osrf_gear/Order.h>
 #include <std_srvs/Trigger.h>
-
+#include <fstream>
+#include <string>
 #include "project_ariac/Manager.hpp"
-#include "project_ariac/UR10_Control.hpp"
 
 /// Start the competition by waiting for and then calling the start ROS Service.
 void start_competition(ros::NodeHandle& node) {
@@ -39,119 +39,69 @@ void start_competition(ros::NodeHandle& node) {
   }
 }
 
-/// End the competition by waiting for and then calling the start ROS Service.
-void end_competition(ros::NodeHandle& node) {
-  // Create a Service client for the correct service, i.e.
-  // '/ariac/end_competition'.
-  ros::ServiceClient start_client =
-      node.serviceClient<std_srvs::Trigger>("/ariac/end_competition");
-  // If it's not already ready, wait for it to be ready.
-  // Calling the Service using the client before the server is ready would fail.
-  if (!start_client.exists()) {
-    ROS_INFO("Waiting for the competition to be ready...");
-    start_client.waitForExistence();
-    ROS_INFO("Competition is now ready to finish.");
-  }
-  ROS_INFO("Requesting competition end...");
-  std_srvs::Trigger srv;   // Combination of the "request" and the "response".
-  start_client.call(srv);  // Call the start Service.
-  if (!srv.response.success) {  // If not successful, print out why.
-    ROS_ERROR_STREAM("Failed to end the competition: " << srv.response.message);
-  } else {
-    ROS_INFO("Competition ended!");
-  }
-}
-
-void send_order(ros::NodeHandle& node) {
-  // Create a Service client for the correct service, i.e. '/ariac/agv1'.
-  ros::ServiceClient agv_client =
-      node.serviceClient<osrf_gear::AGVControl>("/ariac/agv1");
-  // If it's not already ready, wait for it to be ready.
-  // Calling the Service using the client before the server is ready would fail.
-  if (!agv_client.exists()) {
-    ROS_INFO("Waiting for the AGV client to be ready...");
-    agv_client.waitForExistence();
-    ROS_INFO("AGV client is now ready.");
-  }
-  ROS_INFO("Requesting AGV to complete order...");
-  osrf_gear::AGVControl
-      srv;  // Combination of the "request" and the "response".
-  srv.request.kit_type = "order_0_kit_0";
-  agv_client.call(srv);         // Call the start Service.
-  if (!srv.response.success) {  // If not successful, print out why.
-    ROS_ERROR_STREAM("Failed to send");
-  }
-}
-
 int main(int argc, char** argv) {
   ros::init(argc, argv, "project_ariac_node");
 
   ros::NodeHandle node;
   ros::NodeHandle private_node_handle("~");
 
-  bool run;
-  private_node_handle.param("run", run, false);
-
-  UR10_Control ur10(private_node_handle);
-
-  if (run) {
-    ur10.goToStart();
-    return 0;
-  }
-
-  Manager mangement(node);
-
-  ROS_INFO_STREAM("Manager is ready");
-  ros::Rate rate(1.0);
-
-  while (!mangement.isReady()) {
-    ROS_INFO_STREAM("wait for scanning process");
-    ros::spinOnce();
-    rate.sleep();
-  }
-
-  ROS_INFO_STREAM("Starting competition");
+  std::string fileName, outputDir;
+  private_node_handle.param<std::string>("fileName", fileName, " ");
+  private_node_handle.param<std::string>("ouputDir", outputDir, " ");
 
   start_competition(node);
 
-  while (!mangement.isOrderReady()) {
-    ROS_INFO_STREAM("wait for order");
+  Manager manager(node);
+
+  while (!manager.isOrderReady()) {
+    ros::Duration(1.0).sleep();
     ros::spinOnce();
-    rate.sleep();
   }
 
-  geometry_msgs::Pose target;
-  tf::StampedTransform transform;
-
-  auto order = mangement.getOrder();
-  // remove const to modify part
-  for (auto& part : order) {
-    ROS_INFO_STREAM(part.first);
-    while (!part.second.empty()) {
-      //   for (const auto& itr : part.second) {
-      auto itr = part.second.front();
-      part.second.pop_front();
-
-      transform = ur10.getTransfrom("/world", itr);
-
-      target.position.x = transform.getOrigin().x();
-      target.position.y = transform.getOrigin().y();
-      target.position.z = transform.getOrigin().z();
-
-      ROS_INFO_STREAM(">>>>>>>" << itr);
-
-      auto success = ur10.pickAndPlace(target);
-
-      if (!success) {
-        part.second.push_front(mangement.getPart(part.first));
-        ur10.goToStart();
-      }
+  auto order = manager.order_msg_;
+  int gear, piston;
+  for (const auto& kit : order->kits) {
+    for (const auto& itr : kit.objects) {
+      if (itr.type == "gear")
+        gear++;
+      else if (iter.type == "piston")
+        piston++;
     }
   }
 
-  send_order(node);
+  std::fstream inputFile(fileName);
+  std::stringstream outFile;
+  // std::fstream outFile(outputDir+"/updated_ariac-problem.pddl");
+  if (file.good() && !file.eof()) {
+    ROS_INFO_STREAM("File opened!");
+    string line;
+    stringstream output;
+    while (getline(inputFile, line)) {
+      stringstream ss;
+      auto index = line.find("(=(No-of-parts-in-order order)");
+      if (index != string::npos) {inputFinputFileile
+        ss << "    (=(No-of-parts-in-order order) " << gear + piston << ")"
+           << std::endl;
+        for (size_t i = 1; i <= gear; i++) {
+          ss << "    (orderContain order gear" << i << ")" << std::endl;
+        }
+        for (size_t i = 1; i <= piston; i++) {
+          ss << "    (orderContain order piston" << i << ")" << std::endl;
+        }
+      }
+      auto index1 = line.find("orderContain");
+      if (index1 == std::string::npos && index == std::string::npos) ss << line;
+      outFile << ss.str() << std::endl;
+      ROS_INFO_STREAM(ss.str());
+    }
+    inputFile.str(std::string());
+    inputFile << outFile.str();
+    ROS_INFO_STREAM("Done!!");
+  } else {
+    ROS_ERROR_STREAM("Unable to load file:" << fileName);
+  }
 
-  end_competition(node);
-
+  inputFile.close();
+  // outFile.close();
   return 0;
 }

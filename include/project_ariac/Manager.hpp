@@ -54,7 +54,7 @@ class Manager {
   database getOrder();
   bool isOrderReady();
   std::string getPart(const std::string& partType);
-
+  osrf_gear::Order::ConstPtr order_msg_;
  protected:
   void logical_camera_callback_1(
       const osrf_gear::LogicalCameraImage::ConstPtr &image_msg);
