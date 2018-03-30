@@ -40,23 +40,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_interface/planning_interface.h>
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 
 #include <osrf_gear/VacuumGripperControl.h>
 #include <osrf_gear/VacuumGripperState.h>
 
+#include <fstream>
 #include <memory>
 #include <string>
 #include <vector>
-#include <fstream>
 
 #include "project_ariac/Sensor.hpp"
-#include "project_ariac/pickup.h"
-#include "project_ariac/place.h"
 
-typedef osrf_gear::VacuumGripperState::ConstPtr GripperState;
+typedef osrf_gear::VacuumGripperState GripperState;
 typedef std::shared_ptr<planning_scene::PlanningScene> PlanningScenePtr;
 
 class UR10_Control {
@@ -74,12 +72,11 @@ class UR10_Control {
                                     const std::string& target);
   geometry_msgs::Pose target_, home_, agv_;
 
+  bool pickup(const geometry_msgs::Pose& target);
+  bool place(geometry_msgs::Pose target);
+
  protected:
   void gripperStatusCallback(const GripperState& gripper_status);
-  bool pickupSrvCB(project_ariac::pickup::Request& req,
-                   project_ariac::pickup::Response& res);
-  bool placeSrvCB(project_ariac::place::Request& req,
-                  project_ariac::place::Response& res);
 
  private:
   ros::NodeHandle nh_;

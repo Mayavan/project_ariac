@@ -6,18 +6,19 @@
  *
  * @copyright  BSD 3-Clause License (c) 2018 Ravi Bhadeshiya
  **/
-#include <osrf_gear/LogicalCameraImage.h>
-#include "project_ariac/Sensor.hpp"
-
-typedef osrf_gear::LogicalCameraImage::ConstPtr CameraMsg;
-typedef Sensor<CameraMsg> Camera;
+#include "project_ariac/UR10_Control.hpp"
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "project_ariac_node");
-
+  ros::init(argc, argv, "test_node");
   ros::NodeHandle node;
-  std::shared_ptr<Camera> camera;
-  camera = std::make_shared<Camera>(node, "ariac/logical_camera_1");
+
+  geometry_msgs::Pose target_;
+  target_.position.x = -0.5;
+  target_.position.y = -0.735;
+  target_.position.z = 0.724;
+
+
+
 
   ros::spin();
   return 0;

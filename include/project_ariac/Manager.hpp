@@ -1,7 +1,7 @@
 /**
  * @file Manager.hpp
  * @author     Ravi Bhadeshiya
- * @version    0.1
+ * @version    2.0
  * @brief      Class for controlling ariac order
  *
  * @copyright  BSD 3-Clause License (c) 2018 Ravi Bhadeshiya

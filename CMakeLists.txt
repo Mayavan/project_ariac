@@ -14,19 +14,19 @@ find_package(catkin REQUIRED COMPONENTS
   tf2
   moveit_core
   moveit_ros_planning_interface
-  message_generation
+  # message_generation
 )
 
-add_service_files(
-  FILES
-  pickup.srv
-  place.srv
-)
+# add_service_files(
+#   FILES
+#   pickup.srv
+#   place.srv
+# )
 
-generate_messages(
-  DEPENDENCIES
-  std_msgs geometry_msgs#   move_base_msgs#   sensor_msgs#
-)
+# generate_messages(
+#   DEPENDENCIES
+#   std_msgs geometry_msgs#   move_base_msgs#   sensor_msgs#
+# )
 
 
 catkin_package()
@@ -50,11 +50,11 @@ add_dependencies(project_ariac_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin
 target_link_libraries(project_ariac_node ${catkin_LIBRARIES})
 
 
-add_executable(sensor src/Node.cpp)
+add_executable(node src/Node.cpp src/UR10_Control.cpp)
 
-add_dependencies(sensor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_generate_messages_cpp})
+add_dependencies(node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_generate_messages_cpp})
 
-target_link_libraries(sensor ${catkin_LIBRARIES})
+target_link_libraries(node ${catkin_LIBRARIES})
 
 #############
 ## Install ##

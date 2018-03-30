@@ -27,10 +27,11 @@ int main(int argc, char** argv) {
   target.position.y = -0.735;
   target.position.z = 0.724;
 
-  ur10.move(target);
-  ur10.move({ur10.home_, ur10.agv_});
+  ur10.pickup(target);
 
-  ros::spin();
+  ur10.place(ur10.agv_);
+
+  // ros::spin();
   if (run) return 0;
 
   // Manager m(node);
