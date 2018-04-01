@@ -42,6 +42,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 
 #include <osrf_gear/VacuumGripperControl.h>
@@ -77,6 +78,7 @@ class UR10_Control {
 
  protected:
   void gripperStatusCallback(const GripperState& gripper_status);
+  void initConstraint();
 
  private:
   ros::NodeHandle nh_;
@@ -89,11 +91,10 @@ class UR10_Control {
 
   moveit::planning_interface::MoveGroupInterface ur10_;
   moveit::planning_interface::MoveGroupInterface::Plan planner_;
-  PlanningScenePtr planning_scene_;
 
   double z_offSet_;
   std::vector<double> home_joint_angle_;
-  bool gripperPickCheck, gripperPlaceCheck;
+  bool pickup_monitor_, place_monitor_;
 };
 
 namespace gripper {

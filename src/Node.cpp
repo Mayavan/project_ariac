@@ -17,9 +17,6 @@ int main(int argc, char** argv) {
   target_.position.y = -0.735;
   target_.position.z = 0.724;
 
-
-
-
   ros::spin();
   return 0;
 }

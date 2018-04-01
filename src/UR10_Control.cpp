@@ -34,11 +34,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "project_ariac/UR10_Control.hpp"
 
 UR10_Control::UR10_Control(const ros::NodeHandle& server)
-    : ur10_("manipulator"), gripperPickCheck(false), gripperPlaceCheck(false) {
+    : ur10_("manipulator"), pickup_monitor_(false), place_monitor_(false) {
   // init the move group interface
   // Set the planning param
-  int planning_attempt;
-  double planning_time;
+  int planning_attempt, planning_time;
   std::string planner, end_link, base_link, scene_file;
   home_joint_angle_.resize(7);
 
@@ -50,7 +49,7 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
   server.param("wrist_2_joint", home_joint_angle_[5], 4.7);
   server.param("wrist_3_joint", home_joint_angle_[6], 0.0);
   server.param("z_offSet_", z_offSet_, 0.030);
-  server.param("planning_time", planning_time, 2.5);
+  server.param("planning_time", planning_time, 100);
   server.param("planning_attempt", planning_attempt, 20);
   server.param<std::string>("planner", planner, "RRTConnectkConfigDefault");
   server.param<std::string>("end_link", end_link, "/ee_link");
@@ -61,7 +60,7 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
   ur10_.setPlanningTime(planning_time);
   ur10_.setNumPlanningAttempts(planning_attempt);
   ur10_.allowReplanning(true);
-
+  // ur10_.setEndEffector("vacuum_gripper_link");
   move(home_joint_angle_);  // Home condition
 
   // Find pose of home position
@@ -78,7 +77,7 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
   transform = this->getTransfrom("/world", "/agv1_load_point_frame");
   agv_.position.x = transform.getOrigin().x();
   agv_.position.y = transform.getOrigin().y();
-  agv_.position.z = transform.getOrigin().z();
+  agv_.position.z = transform.getOrigin().z() + 2.0 * z_offSet_;
   agv_.orientation = home_.orientation;
 
   // Init the gripper control and feedback
@@ -86,12 +85,6 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
       "/ariac/gripper/control");
   gripper_sensor_ = nh_.subscribe("/ariac/gripper/state/", 10,
                                   &UR10_Control::gripperStatusCallback, this);
-  // Pick and place srv init
-  // But not possible due to async spinner
-  // pickupServer_ =
-  //     nh_.advertiseService("ur10_pickup", &UR10_Control::pickupSrvCB, this);
-  // placeServer_ =
-  //     nh_.advertiseService("ur10_place", &UR10_Control::placeSrvCB, this);
 
   ros::Duration(0.5).sleep();
 }
@@ -127,8 +120,9 @@ void UR10_Control::move(const geometry_msgs::Pose& target) {
   if (success) {
     ROS_INFO("Planned success.");
     ur10_.move();
-  } else
+  } else {
     ROS_WARN("Planned unsucess!");
+  }
 }
 
 void UR10_Control::move(const std::vector<double>& target_joint) {
@@ -145,8 +139,9 @@ void UR10_Control::move(const std::vector<double>& target_joint) {
   if (success) {
     ROS_INFO("Planned success.");
     ur10_.move();
-  } else
+  } else {
     ROS_WARN("Planned unsucess!");
+  }
 }
 
 void UR10_Control::move(const std::vector<geometry_msgs::Pose>& waypoints,
@@ -185,8 +180,9 @@ void UR10_Control::gripperAction(const bool action) {
 
 void UR10_Control::gripperStatusCallback(const GripperState& gripper_status) {
   gripper_state_ = gripper_status;
-  // ROS_WARN_STREAM("Gripper state:" << gripper_state_.attached);
-  // if ((gripperPickCheck && gripper_state_.attached)) ur10_.stop();
+  if ((pickup_monitor_ && gripper_state_.attached) ||
+      (place_monitor_ && !gripper_state_.attached))
+    ur10_.stop();
 }
 
 // TODO: Feedback is not correct
@@ -199,41 +195,63 @@ bool UR10_Control::pickup(const geometry_msgs::Pose& target) {
   move(target_);
   gripperAction(gripper::CLOSE);
   // should stop after part is being picked
-  ros::Duration(0.5).sleep();
-  gripperPickCheck = true;
-  target_.position.z -= 0.8 * z_offSet_;
+  pickup_monitor_ = true;
+  target_.position.z -= 0.5 * z_offSet_;
   move({target_}, 0.1, 0.001);  // Grasp move
-  gripperPickCheck = false;
+  ros::Duration(0.5).sleep();
+  pickup_monitor_ = false;
+  // move(target_);
   // Reset speed
-  ur10_.setMaxAccelerationScalingFactor(1.0);
-  ur10_.setMaxVelocityScalingFactor(1.0);
-  // should attach after motion
+  // ur10_.setMaxAccelerationScalingFactor(1.0);
+  // ur10_.setMaxVelocityScalingFactor(1.0);
+  // should attach after execution
   // it means, robot pick up part
-  ros::spinOnce();
   return gripper_state_.attached;
-  // return res.result;
+  // return res.result;i
 }
 
 bool UR10_Control::place(geometry_msgs::Pose target) {
   // Lock the orientation
-
+  // initConstraint();
   target_.position = target.position;
-  target_.position.z += (2.0 * z_offSet_);
-  target.position.z += (15.0 * z_offSet_);
+  target_.position.z += 0.5;
+  target.orientation = home_.orientation;
 
-  auto waypoints = {home_, target, target_};
+  auto waypoints = {home_, target_, target};
   // it will stop the motion,
   // if robot drop part
-  gripperPlaceCheck = true;
-  // move(home_);
-  // move(target);
+  place_monitor_ = true;
   move(waypoints);
-  gripperPlaceCheck = false;
+  place_monitor_ = false;
   // should attach before openning
   // robot didn't drop part
   ros::spinOnce();
   bool result = gripper_state_.attached;
   gripperAction(gripper::OPEN);
-  move(home_);
+  // ready for next part
+  move({target_, home_});
+
   return result;
+}
+
+void UR10_Control::initConstraint() {
+  ur10_.clearPathConstraints();
+  moveit_msgs::Constraints ur10_constraints;
+  moveit_msgs::JointConstraint jcm;
+  auto joints = {"elbow_joint",         "linear_arm_actuator_joint",
+                 "shoulder_lift_joint", "shoulder_pan_joint",
+                 "wrist_1_joint",       "wrist_2_joint",
+                 "wrist_3_joint"};
+
+  size_t count = 0;
+  for (const auto& joint : joints) {
+    jcm.joint_name = joint;
+    jcm.position = home_joint_angle_[count];
+    jcm.tolerance_above = 3.0;
+    jcm.tolerance_below = -3.0;
+    jcm.weight = 1.0;
+    ur10_constraints.joint_constraints.push_back(jcm);
+    count++;
+  }
+  ur10_.setPathConstraints(ur10_constraints);
 }
