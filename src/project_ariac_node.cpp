@@ -17,29 +17,46 @@ int main(int argc, char** argv) {
   ros::NodeHandle node;
   ros::NodeHandle private_node_handle("~");
 
-  bool run;
+  bool run, result;
   private_node_handle.param("run", run, false);
 
   UR10_Control ur10(private_node_handle);
 
   geometry_msgs::Pose target;
-  target.position.x = -0.5;
-  target.position.y = -0.735;
-  target.position.z = 0.724;
+  tf::StampedTransform transform;
 
-  ur10.pickup(target);
+  Manager m(node);
+  m.start_competition();
+  m.checkInventory();
+  auto ariac_order = m.getTheOrderMsg();
+  // wait for order
+  for (const auto& kit : ariac_order->kits) {
+    for (const auto& part : kit.objects) {
+      // TODO(ravib)
+      // part.type and part.pose;
+      transform = ur10.getTransfrom("/world", m.getPart(part.type));
+      target.position.x = transform.getOrigin().x();
+      target.position.y = transform.getOrigin().y();
+      target.position.z = transform.getOrigin().z();
 
-  ur10.place(ur10.agv_);
+      do {
+        ROS_INFO_STREAM("Pickup :" << part.type);
+        result = ur10.pickup(target);
+        ur10.move(ur10.home_);
+        if (!result) {
+          ROS_WARN_STREAM("Pickup failed");
+        }
+      } while (!result);
 
-  // ros::spin();
-  if (run) return 0;
-
-  // Manager m(node);
-  // m.start_competition();
-  // m.checkInventory();
-  // m.finishOrder();
-  // m.send_order();
-  // m.end_competition();
-
+      if (result) {
+        ROS_INFO_STREAM("Place :" << part.type);
+        target = m.findPose(part.pose, "logical_camera_3_frame");
+        if (!result) ROS_WARN_STREAM("Palce failed");
+        result = ur10.place(target);
+      }
+    }
+    m.send_order();
+  }
   return 0;
 }
+

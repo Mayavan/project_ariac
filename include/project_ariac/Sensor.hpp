@@ -44,15 +44,16 @@ class Sensor {
   Sensor();
   explicit Sensor(const ros::NodeHandle& nh, const std::string& topic);
   ~Sensor();
-  T getMessage();
-  void callback(const T& msg);
+  virtual T getMessage();
+  virtual void callback(const T& msg);
   bool isPopulated();
-
+  std::string getSensorFrame();
  private:
   ros::Subscriber sensor_subscriber_;
   NodePtr nh_;
   T msg_ = NULL;
   bool populated_;
+  std::string topic_;
 };
 
 template <class T>
@@ -60,7 +61,7 @@ Sensor<T>::Sensor() : populated_(false) {}
 
 template <class T>
 Sensor<T>::Sensor(const ros::NodeHandle& nh, const std::string& topic)
-    : populated_(false) {
+    : populated_(false), topic_(topic) {
   nh_ = std::make_shared<ros::NodeHandle>(nh);
   sensor_subscriber_ = nh_->subscribe(topic, 10, &Sensor<T>::callback, this);
   ROS_DEBUG_STREAM("Sensor subscribed to " << topic << std::endl);
@@ -83,4 +84,9 @@ void Sensor<T>::callback(const T& msg) {
 template <class T>
 bool Sensor<T>::isPopulated() {
   return populated_;
+}
+
+template <class T>
+std::string Sensor<T>::getSensorFrame() {
+  return topic_.substr(topic_.find_last_of('/')) + "_frame";
 }

@@ -67,7 +67,7 @@ class UR10_Control {
   void move(const geometry_msgs::Pose& target);
   void move(const std::vector<double>& target_joint);
   void move(const std::vector<geometry_msgs::Pose>& waypoints,
-            double velocity_factor = 1.0, double eef_step = 0.01,
+            double velocity_factor = 1.0, double eef_step = 0.001,
             double jump_threshold = 0.0);
   tf::StampedTransform getTransfrom(const std::string& src,
                                     const std::string& target);

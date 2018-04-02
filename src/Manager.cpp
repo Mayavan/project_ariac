@@ -82,27 +82,16 @@ void Manager::checkInventory() {
   }
 }
 
-void Manager::finishOrder() {
-  // wait for order
-  while (!order_manager_->isPopulated()) {
-    ROS_WARN_STREAM("Waiting for order");
-    ros::spinOnce();
-    rate_->sleep();
-  }
-
-  bool sucess;
-  auto order_msg = order_manager_->getMessage();
-  for (const auto& kit : order_msg->kits) {
-    for (const auto& part : kit.objects) {
-      // TODO(ravib)
-      sucess = false;
-      do {
-        // sucess = ur10 pick and place action using getPart(part.type);
-        sucess = true;
-      } while (!sucess);
-    }
-  }
-}
+// void Manager::finishOrder() {
+//   // wait for order
+//   bool result;
+//   for (const auto& kit : order_msg->kits) {
+//     for (const auto& part : kit.objects) {
+//       // TODO(ravib)
+//       // part.type and part.pose;
+//     }
+//   }
+// }
 
 std::string Manager::getPart(const std::string& partType) {
   std::string part = inventory_[partType].front();
@@ -176,4 +165,38 @@ void Manager::send_order(std::string agv, std::string kit_id) const {
   if (!srv.response.success) {  // If not successful, print out why.
     ROS_ERROR_STREAM("Failed to send");
   }
+}
+
+// void Manager::processCameraMsg(const CameraMsg& msg){
+//   return;
+// }
+
+geometry_msgs::Pose Manager::findPose(const geometry_msgs::Pose& inPose,
+                                      const std::string& header) {
+  geometry_msgs::PoseStamped inPose_;
+  geometry_msgs::PoseStamped outPose_;
+
+  inPose_.header.frame_id = header;
+  inPose_.pose = inPose;
+  inPose_.header.stamp = ros::Time(0);
+
+  listener_.waitForTransform("/world", header, inPose_.header.stamp,
+                             ros::Duration(10));
+  try {
+    listener_.transformPose("/world", inPose_, outPose_);
+  } catch (tf::TransformException& ex) {
+    ROS_ERROR("%s", ex.what());
+    ros::Duration(0.5).sleep();
+  }
+  return outPose_.pose;
+}
+
+OrderMsg Manager::getTheOrderMsg() {
+  while (!order_manager_->isPopulated()) {
+    ROS_WARN_STREAM("Waiting for order");
+    ros::spinOnce();
+    rate_->sleep();
+  }
+
+  return order_manager_->getMessage();
 }

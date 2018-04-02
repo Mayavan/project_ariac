@@ -32,60 +32,25 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #pragma once
-// ROS interface
 #include <geometry_msgs/Pose.h>
-#include <ros/ros.h>
-#include <tf/transform_listener.h>
-// Ariac interface
-#include <osrf_gear/AGVControl.h>
-#include <osrf_gear/LogicalCameraImage.h>
-#include <osrf_gear/Order.h>
-#include <std_srvs/Trigger.h>
-// STL
-#include <list>
-#include <map>
-#include <memory>
+#include <cmath>
 #include <string>
-// Custom abstraction
-#include "project_ariac/Sensor.hpp"
-// Custom types
-typedef osrf_gear::LogicalCameraImage::ConstPtr CameraMsg;
-typedef Sensor<CameraMsg> Camera;
-typedef std::shared_ptr<Camera> CameraPtr;
+namespace peoject_ariac {
 
-typedef osrf_gear::Order::ConstPtr OrderMsg;
-typedef Sensor<OrderMsg> Order;
-typedef std::shared_ptr<Order> OrderPtr;
-
-typedef std::shared_ptr<ros::NodeHandle> NodePtr;
-typedef std::shared_ptr<ros::Rate> RatePtr;
-typedef std::map<std::string, std::list<std::string>> Database;
-
-/**
- * @brief      Class for manager.
- */
-class Manager {
- public:
-  explicit Manager(const ros::NodeHandle& nh);
-  ~Manager();
-  void checkInventory();
-  // void finishOrder();
-  std::string getPart(const std::string& partType);
-  // ARIAC interface
-  void start_competition(std::string topic = "/ariac/start_competition") const;
-  void end_competition(std::string topic = "/ariac/end_competition") const;
-  OrderMsg getTheOrderMsg();
-  void send_order(std::string agv = "/ariac/agv1",
-                  std::string kit_id = "order_0_kit_0") const;
-
-  geometry_msgs::Pose findPose(const geometry_msgs::Pose& inPose,
-                               const std::string& header);
-
- private:
-  NodePtr nh_;
-  CameraPtr logical_camera_1_, logical_camera_2_;
-  OrderPtr order_manager_;
-  RatePtr rate_;
-  Database inventory_;
-  tf::TransformListener listener_;
+struct Part {
+  std::string type_;
+  geometry_msgs::Pose pose_;
+  bool operator==(const Part& cmp) const;
+  float distance(const Part& rhs);
 };
+
+float Part::distance(const Part& rhs) {
+  return std::sqrt(std::pow(pose_.position.x - rhs.pose_.position.x, 2.0) +
+                   std::pow(pose_.position.y - rhs.pose_.position.y, 2.0) +
+                   std::pow(pose_.position.z - rhs.pose_.position.z, 2.0));
+}
+bool Part::operator==(const Part& cmp) const {
+  return (this->type_.compare(cmp.type_) == 0) && (this->distance(cmp) < 0.01);
+}
+
+}  // namespace peoject_ariac

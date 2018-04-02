@@ -147,9 +147,6 @@ void UR10_Control::move(const std::vector<double>& target_joint) {
 void UR10_Control::move(const std::vector<geometry_msgs::Pose>& waypoints,
                         double velocity_factor, double eef_step,
                         double jump_threshold) {
-  ros::AsyncSpinner spinner(4);
-  spinner.start();
-
   moveit_msgs::RobotTrajectory trajectory;
   ur10_.setMaxAccelerationScalingFactor(velocity_factor);
   ur10_.setMaxVelocityScalingFactor(velocity_factor);
@@ -160,7 +157,9 @@ void UR10_Control::move(const std::vector<geometry_msgs::Pose>& waypoints,
 
   ROS_INFO("UR10 control Move %.2f%% acheived..", fraction * 100.0);
 
-  if (fraction > 0.9) ur10_.execute(planner_);
+  if (fraction > 0.9) {
+    ur10_.execute(planner_);
+  };
 }
 
 void UR10_Control::gripperAction(const bool action) {
@@ -185,39 +184,43 @@ void UR10_Control::gripperStatusCallback(const GripperState& gripper_status) {
     ur10_.stop();
 }
 
-// TODO: Feedback is not correct
-// if part is dropped or picked, then motion will stop
 bool UR10_Control::pickup(const geometry_msgs::Pose& target) {
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
   // Lock the orientation
   target_.position = target.position;
   target_.position.z += z_offSet_;
 
-  move(target_);
+  move({target_}, 1.0, 0.001);
   gripperAction(gripper::CLOSE);
   // should stop after part is being picked
   pickup_monitor_ = true;
   target_.position.z -= 0.5 * z_offSet_;
-  move({target_}, 0.1, 0.001);  // Grasp move
+  move({target_}, 0.1, 0.0001);  // Grasp move
   ros::Duration(0.5).sleep();
   pickup_monitor_ = false;
+  // move(home_);
   // move(target_);
   // Reset speed
   // ur10_.setMaxAccelerationScalingFactor(1.0);
   // ur10_.setMaxVelocityScalingFactor(1.0);
   // should attach after execution
   // it means, robot pick up part
+  ros::spinOnce();
   return gripper_state_.attached;
   // return res.result;i
 }
 
 bool UR10_Control::place(geometry_msgs::Pose target) {
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
   // Lock the orientation
   // initConstraint();
   target_.position = target.position;
   target_.position.z += 0.5;
   target.orientation = home_.orientation;
 
-  auto waypoints = {home_, target_, target};
+  auto waypoints = {target_, target};
   // it will stop the motion,
   // if robot drop part
   place_monitor_ = true;
@@ -228,9 +231,11 @@ bool UR10_Control::place(geometry_msgs::Pose target) {
   ros::spinOnce();
   bool result = gripper_state_.attached;
   gripperAction(gripper::OPEN);
-  // ready for next part
-  move({target_, home_});
 
+  if (result) {
+    // ready for next part
+    move({target_, home_});
+  }
   return result;
 }
 
