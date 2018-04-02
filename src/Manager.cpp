@@ -40,6 +40,7 @@ Manager::Manager(const ros::NodeHandle& nh) {
   // Init Cameras
   logical_camera_1_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_1");
   logical_camera_2_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_2");
+  logical_camera_3_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_3");
   // Init order manager
   order_manager_ = std::make_shared<Order>(nh, "/ariac/orders");
   ROS_DEBUG_STREAM("Manager is init..");
@@ -199,4 +200,29 @@ OrderMsg Manager::getTheOrderMsg() {
   }
 
   return order_manager_->getMessage();
+}
+
+std::vector<geometry_msgs::Pose> Manager::look_over_tray(
+    const std::string& part_type) {
+  ros::spinOnce();
+  rate_->sleep();
+  while (!logical_camera_3_->isPopulated()) {
+    ROS_INFO_STREAM("Looking over tray....");
+    ros::spinOnce();
+    rate_->sleep();
+  }
+  std::vector<geometry_msgs::Pose> temp;
+  auto image_msg = logical_camera_3_->getMessage();
+  for (const auto& part : image_msg->models) {
+    if (part.type.compare(part_type) == 0) {
+      temp.push_back(part.pose);
+    }
+  }
+}
+
+float Manager::distance(const geometry_msgs::Pose& current,
+                        const geometry_msgs::Pose& target) {
+  return std::sqrt(std::pow(current.position.x - target.position.x, 2.0) +
+                   std::pow(current.position.y - target.position.y, 2.0) +
+                   std::pow(current.position.z - target.position.z, 2.0));
 }

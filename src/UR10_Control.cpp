@@ -191,12 +191,15 @@ bool UR10_Control::pickup(const geometry_msgs::Pose& target) {
   target_.position = target.position;
   target_.position.z += z_offSet_;
 
-  move({target_}, 1.0, 0.001);
+  move({target_}, 0.5, 0.005);
+  ur10_.setMaxAccelerationScalingFactor(0.5);
+  ur10_.setMaxVelocityScalingFactor(0.5);
+  // move(target_);
   gripperAction(gripper::CLOSE);
   // should stop after part is being picked
   pickup_monitor_ = true;
-  target_.position.z -= 0.5 * z_offSet_;
-  move({target_}, 0.1, 0.0001);  // Grasp move
+  // target_.position.z -= 0.5 * z_offSet_;
+  // move({target_}, 0.1, 0.0001);  // Grasp move
   ros::Duration(0.5).sleep();
   pickup_monitor_ = false;
   // move(home_);
@@ -207,24 +210,33 @@ bool UR10_Control::pickup(const geometry_msgs::Pose& target) {
   // should attach after execution
   // it means, robot pick up part
   ros::spinOnce();
+  ros::Duration(0.5).sleep();
   return gripper_state_.attached;
   // return res.result;i
 }
 
 bool UR10_Control::place(geometry_msgs::Pose target) {
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
   // Lock the orientation
   // initConstraint();
-  target_.position = target.position;
-  target_.position.z += 0.5;
+  target.position.z += 2 * z_offSet_;
   target.orientation = home_.orientation;
 
-  auto waypoints = {target_, target};
+  target_.position = agv_.position;
+  target_.position.z += 0.5;
+
+  auto waypoints = {home_, target_, target};
+  // it will stop the motion,
+  // if robot drop part
+  return place(waypoints);
+}
+
+bool UR10_Control::place(std::vector<geometry_msgs::Pose> targets) {
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
   // it will stop the motion,
   // if robot drop part
   place_monitor_ = true;
-  move(waypoints);
+  move(targets, 0.5, 0.005);
   place_monitor_ = false;
   // should attach before openning
   // robot didn't drop part
@@ -234,7 +246,10 @@ bool UR10_Control::place(geometry_msgs::Pose target) {
 
   if (result) {
     // ready for next part
+    auto target_ = agv_;
+    target_.position.z += 0.5;
     move({target_, home_});
+    move(home_joint_angle_);
   }
   return result;
 }
