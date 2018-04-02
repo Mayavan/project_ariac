@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
 
       if (result) {
         ROS_INFO_STREAM("Place :" << part.type);
-        target = m.findPose(part.pose, "logical_camera_3_frame");
+        target = m.findPose(part.pose, "logical_camera_3_kit_tray_1_frame");
         if (!result) ROS_WARN_STREAM("Palce failed");
         result = ur10.place(target);
       }
