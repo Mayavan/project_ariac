@@ -1,8 +1,8 @@
 /**
- * @file Manager.hpp
+ * @file Interface.hpp
  * @author     Ravi Bhadeshiya
  * @version    2.0
- * @brief      Class for controlling ariac order
+ * @brief      Class for Interface
  *
  * @copyright  BSD 3-Clause License (c) 2018 Ravi Bhadeshiya
  *
@@ -32,26 +32,27 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #pragma once
+// ROS interface
 #include <geometry_msgs/Pose.h>
-#include <cmath>
+#include <geometry_msgs/TransformStamped.h>
+#include <ros/ros.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
+#include <memory>
 #include <string>
-namespace peoject_ariac {
 
-struct Part {
-  std::string type_;
-  geometry_msgs::Pose pose_;
-  bool operator==(const Part& cmp) const;
-  float distance(const Part& rhs);
+class Interface {
+ public:
+  Interface();
+  ~Interface();
+  geometry_msgs::Pose getTransfrom(const std::string& src,
+                                   const std::string& target);
+  geometry_msgs::Pose getPose(const geometry_msgs::Pose& inPose,
+                              const std::string& ref);
+
+ protected:
+  tf2_ros::Buffer buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> listener_ptr_;
+  geometry_msgs::TransformStamped transformStamped_;
 };
-
-float Part::distance(const Part& rhs) {
-  return std::sqrt(std::pow(pose_.position.x - rhs.pose_.position.x, 2.0) +
-                   std::pow(pose_.position.y - rhs.pose_.position.y, 2.0) +
-                   std::pow(pose_.position.z - rhs.pose_.position.z, 2.0));
-}
-
-bool Part::operator==(const Part& cmp) const {
-  return (this->type_.compare(cmp.type_) == 0) && (this->distance(cmp) < 0.01);
-}
-
-}  // namespace peoject_ariac

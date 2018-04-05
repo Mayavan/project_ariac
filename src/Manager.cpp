@@ -41,6 +41,8 @@ Manager::Manager(const ros::NodeHandle& nh) {
   logical_camera_1_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_1");
   logical_camera_2_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_2");
   logical_camera_3_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_3");
+  agv_[0] = std::make_shared<Agv>(nh, "/ariac/agv1/state");
+  agv_[1] = std::make_shared<Agv>(nh, "/ariac/agv2/state");
   // Init order manager
   order_manager_ = std::make_shared<Order>(nh, "/ariac/orders");
   ROS_DEBUG_STREAM("Manager is init..");
@@ -82,17 +84,6 @@ void Manager::checkInventory() {
     count++;
   }
 }
-
-// void Manager::finishOrder() {
-//   // wait for order
-//   bool result;
-//   for (const auto& kit : order_msg->kits) {
-//     for (const auto& part : kit.objects) {
-//       // TODO(ravib)
-//       // part.type and part.pose;
-//     }
-//   }
-// }
 
 std::string Manager::getPart(const std::string& partType) {
   std::string part = inventory_[partType].front();
@@ -172,26 +163,6 @@ void Manager::send_order(std::string agv, std::string kit_id) const {
 //   return;
 // }
 
-geometry_msgs::Pose Manager::findPose(const geometry_msgs::Pose& inPose,
-                                      const std::string& header) {
-  geometry_msgs::PoseStamped inPose_;
-  geometry_msgs::PoseStamped outPose_;
-
-  inPose_.header.frame_id = header;
-  inPose_.pose = inPose;
-  inPose_.header.stamp = ros::Time(0);
-
-  listener_.waitForTransform("/world", header, inPose_.header.stamp,
-                             ros::Duration(10));
-  try {
-    listener_.transformPose("/world", inPose_, outPose_);
-  } catch (tf::TransformException& ex) {
-    ROS_ERROR("%s", ex.what());
-    ros::Duration(0.5).sleep();
-  }
-  return outPose_.pose;
-}
-
 OrderMsg Manager::getTheOrderMsg() {
   while (!order_manager_->isPopulated()) {
     ROS_WARN_STREAM("Waiting for order");
@@ -225,4 +196,24 @@ float Manager::distance(const geometry_msgs::Pose& current,
   return std::sqrt(std::pow(current.position.x - target.position.x, 2.0) +
                    std::pow(current.position.y - target.position.y, 2.0) +
                    std::pow(current.position.z - target.position.z, 2.0));
+}
+
+bool Manager::isAgvReady(const int& no) {
+  while (!agv_[no]->isPopulated()) {
+    ROS_INFO_STREAM("Looking over tray....");
+    ros::spinOnce();
+    rate_->sleep();
+  }
+  auto msg = agv_[no]->getMessage();
+  return msg->data.compare("ready_to_deliver") == 0;
+}
+
+int Manager::pick_agv() {
+  ROS_INFO_STREAM("Checking agvs state.");
+  while (!isAgvReady(0) || !isAgvReady(1)) {
+    ROS_WARN_STREAM("Both Agvs are busy!!");
+    ros::spinOnce();
+    rate_->sleep();
+  }
+  return isAgvReady(0) ? 1 : 2;
 }

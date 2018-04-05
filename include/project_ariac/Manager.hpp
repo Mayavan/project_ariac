@@ -33,44 +33,48 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #pragma once
 // ROS interface
-#include <geometry_msgs/Pose.h>
 #include <ros/ros.h>
+#include <geometry_msgs/Pose.h>
 #include <tf/transform_listener.h>
 // Ariac interface
-#include <osrf_gear/AGVControl.h>
 #include <osrf_gear/LogicalCameraImage.h>
-#include <osrf_gear/Order.h>
+#include <osrf_gear/AGVControl.h>
 #include <std_srvs/Trigger.h>
+#include <osrf_gear/Order.h>
+#include <std_msgs/String.h>
 // STL
 #include <list>
 #include <map>
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 // Custom abstraction
 #include "project_ariac/Sensor.hpp"
+#include "project_ariac/Interface.hpp"
+
 // Custom types
 typedef osrf_gear::LogicalCameraImage::ConstPtr CameraMsg;
-typedef Sensor<CameraMsg> Camera;
-typedef std::shared_ptr<Camera> CameraPtr;
-
 typedef osrf_gear::Order::ConstPtr OrderMsg;
+
+typedef Sensor<std_msgs::String::ConstPtr> Agv;
+typedef Sensor<CameraMsg> Camera;
 typedef Sensor<OrderMsg> Order;
-typedef std::shared_ptr<Order> OrderPtr;
 
 typedef std::shared_ptr<ros::NodeHandle> NodePtr;
 typedef std::shared_ptr<ros::Rate> RatePtr;
-typedef std::map<std::string, std::list<std::string>> Database;
+typedef std::shared_ptr<Camera> CameraPtr;
+typedef std::shared_ptr<Order> OrderPtr;
+typedef std::shared_ptr<Agv> AgvPtr;
 
+typedef std::map<std::string, std::list<std::string>> Database;
 /**
  * @brief      Class for manager.
  */
-class Manager {
+class Manager : public Interface {
  public:
   explicit Manager(const ros::NodeHandle& nh);
   ~Manager();
   void checkInventory();
-  // void finishOrder();
   std::string getPart(const std::string& partType);
   // ARIAC interface
   void start_competition(std::string topic = "/ariac/start_competition") const;
@@ -79,14 +83,20 @@ class Manager {
   void send_order(std::string agv = "/ariac/agv1",
                   std::string kit_id = "order_0_kit_0") const;
   std::vector<geometry_msgs::Pose> look_over_tray(const std::string& part_type);
+
   geometry_msgs::Pose findPose(const geometry_msgs::Pose& inPose,
                                const std::string& header);
+
   float distance(const geometry_msgs::Pose& current,
                  const geometry_msgs::Pose& target);
+
+  bool isAgvReady(const int& no);
+  int pick_agv();
 
  private:
   NodePtr nh_;
   CameraPtr logical_camera_1_, logical_camera_2_, logical_camera_3_;
+  AgvPtr agv_[2];
   OrderPtr order_manager_;
   RatePtr rate_;
   Database inventory_;

@@ -52,8 +52,8 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
   server.param("planning_time", planning_time, 100);
   server.param("planning_attempt", planning_attempt, 20);
   server.param<std::string>("planner", planner, "RRTConnectkConfigDefault");
-  server.param<std::string>("end_link", end_link, "/ee_link");
-  server.param<std::string>("base_link", base_link, "/world");
+  server.param<std::string>("end_link", end_link, "ee_link");
+  server.param<std::string>("base_link", base_link, "world");
   server.param<std::string>("scene", scene_file, " ");
 
   ur10_.setPlannerId(planner);
@@ -64,48 +64,26 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
   move(home_joint_angle_);  // Home condition
 
   // Find pose of home position
-  auto transform = this->getTransfrom(base_link, end_link);
-  home_.position.x = transform.getOrigin().x();
-  home_.position.y = transform.getOrigin().y();
-  home_.position.z = transform.getOrigin().z() - z_offSet_;
-  home_.orientation.x = transform.getRotation().x();
-  home_.orientation.y = transform.getRotation().y();
-  home_.orientation.z = transform.getRotation().z();
-  home_.orientation.w = transform.getRotation().w();
+  home_ = this->getTransfrom(base_link, end_link);
   target_ = home_;
 
-  transform = this->getTransfrom("/world", "/agv1_load_point_frame");
-  agv_.position.x = transform.getOrigin().x();
-  agv_.position.y = transform.getOrigin().y();
-  agv_.position.z = transform.getOrigin().z() + 2.0 * z_offSet_;
-  agv_.orientation = home_.orientation;
+  agv_[0] = this->getTransfrom("world", "agv1_load_point_frame");
+  agv_[0].position.z += 0.5;
+  agv_[0].orientation = home_.orientation;
+
+  agv_[1] = this->getTransfrom("world", "agv2_load_point_frame");
+  agv_[1].position.z += 0.5;
+  agv_[1].orientation = home_.orientation;
 
   // Init the gripper control and feedback
   gripper_ = nh_.serviceClient<osrf_gear::VacuumGripperControl>(
       "/ariac/gripper/control");
   gripper_sensor_ = nh_.subscribe("/ariac/gripper/state/", 10,
                                   &UR10_Control::gripperStatusCallback, this);
-
   ros::Duration(0.5).sleep();
 }
 
 UR10_Control::~UR10_Control() { ur10_.stop(); }
-
-tf::StampedTransform UR10_Control::getTransfrom(const std::string& src,
-                                                const std::string& target) {
-  tf::StampedTransform transform;
-  tf::TransformListener listener;
-
-  listener.waitForTransform(src, target, ros::Time(0), ros::Duration(20));
-  try {
-    listener.lookupTransform(src, target, ros::Time(0), transform);
-  } catch (tf::TransformException& ex) {
-    ROS_ERROR("%s", ex.what());
-    ros::Duration(0.5).sleep();
-  }
-
-  return transform;
-}
 
 void UR10_Control::move(const geometry_msgs::Pose& target) {
   ros::AsyncSpinner spinner(4);
@@ -129,7 +107,8 @@ void UR10_Control::move(const std::vector<double>& target_joint) {
   ros::AsyncSpinner spinner(4);
   spinner.start();
   // std::vector<double> target = {0, 3 , -1, 1.9, 4, 4.7, 0};
-  // ur10_.setJointValueTarget(target);
+
+  ur10_.setJointValueTarget(target_joint);
   ur10_.setJointValueTarget(home_joint_angle_);
 
   ROS_INFO("Planning start");
@@ -159,7 +138,7 @@ void UR10_Control::move(const std::vector<geometry_msgs::Pose>& waypoints,
 
   if (fraction > 0.9) {
     ur10_.execute(planner_);
-  };
+  }
 }
 
 void UR10_Control::gripperAction(const bool action) {
@@ -169,7 +148,7 @@ void UR10_Control::gripperAction(const bool action) {
 
   gripper_.call(srv);
 
-  ros::Duration(1).sleep();
+  ros::Duration(0.5).sleep();
 
   if (srv.response.success)
     ROS_INFO_STREAM("Gripper Action Successfully Exicuted!");
@@ -188,25 +167,30 @@ bool UR10_Control::pickup(const geometry_msgs::Pose& target) {
   ros::AsyncSpinner spinner(1);
   spinner.start();
   // Lock the orientation
-  target_.position = target.position;
-  target_.position.z += z_offSet_;
 
-  move({target_}, 0.5, 0.005);
-  ur10_.setMaxAccelerationScalingFactor(0.5);
-  ur10_.setMaxVelocityScalingFactor(0.5);
+  std::vector<geometry_msgs::Pose> waypoints;
+  waypoints.reserve(2);
+
+  target_.position = target.position;
+  target_.position.z += 0.5;
+
+  // move({target_}, 0.5, 0.005);
+  ur10_.setMaxAccelerationScalingFactor(0.1);
+  ur10_.setMaxVelocityScalingFactor(0.1);
   // move(target_);
+  waypoints.push_back(target_);
+
   gripperAction(gripper::CLOSE);
   // should stop after part is being picked
   pickup_monitor_ = true;
-  // target_.position.z -= 0.5 * z_offSet_;
-  // move({target_}, 0.1, 0.0001);  // Grasp move
-  ros::Duration(0.5).sleep();
+  target_.position.z = target.position.z + z_offSet_;
+  waypoints.push_back(target_);
+
+  move(waypoints);
+  // move({target_}, 0.1, 0.001);  // Grasp move
+  ros::Duration(1.0).sleep();
   pickup_monitor_ = false;
-  // move(home_);
-  // move(target_);
-  // Reset speed
-  // ur10_.setMaxAccelerationScalingFactor(1.0);
-  // ur10_.setMaxVelocityScalingFactor(1.0);
+
   // should attach after execution
   // it means, robot pick up part
   ros::spinOnce();
@@ -215,22 +199,40 @@ bool UR10_Control::pickup(const geometry_msgs::Pose& target) {
   // return res.result;i
 }
 
-bool UR10_Control::place(geometry_msgs::Pose target) {
+bool UR10_Control::robust_pickup(const std::string& frame, int max_try) {
+  bool result;
+  do {
+    auto target_pick = getTransfrom("world", frame);
+    result = pickup(target_pick);
+    max_try--;
+  } while (!result || max_try == 0);
+  return result;
+}
+
+bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
   // Lock the orientation
   // initConstraint();
+  std::vector<geometry_msgs::Pose> waypoints;
+  waypoints.reserve(3);
+
+  target_.position.z += 0.5;
+  waypoints.push_back(target_);
+
+  target_.position = agv_[agv].position;
+  target_.position.y = target.position.y;
+  waypoints.push_back(target_);
+
   target.position.z += 2 * z_offSet_;
   target.orientation = home_.orientation;
+  waypoints.push_back(target);
 
-  target_.position = agv_.position;
-  target_.position.z += 0.5;
-
-  auto waypoints = {home_, target_, target};
+  // auto waypoints = {target_, agv_[agv], target};
   // it will stop the motion,
   // if robot drop part
   return place(waypoints);
 }
 
-bool UR10_Control::place(std::vector<geometry_msgs::Pose> targets) {
+bool UR10_Control::place(const std::vector<geometry_msgs::Pose>& targets) {
   ros::AsyncSpinner spinner(1);
   spinner.start();
   // it will stop the motion,
@@ -246,11 +248,27 @@ bool UR10_Control::place(std::vector<geometry_msgs::Pose> targets) {
 
   if (result) {
     // ready for next part
-    auto target_ = agv_;
-    target_.position.z += 0.5;
+
     move({target_, home_});
-    move(home_joint_angle_);
+    // move(home_joint_angle_);
   }
+  return result;
+}
+
+bool UR10_Control::robust_place(const geometry_msgs::Pose& target,
+                                const std::string& ref, int agv) {
+  bool result;
+
+  auto target_place = getPose(target, ref);
+
+  result = place(target_place, agv);
+
+  if (!result) {
+    ROS_WARN_STREAM("Robust Place failed..!");
+    //   robust_pickup("find the part");
+    //   place(target_place, agv);
+  }
+
   return result;
 }
 

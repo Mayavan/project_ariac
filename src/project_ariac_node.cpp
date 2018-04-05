@@ -36,60 +36,19 @@ int main(int argc, char** argv) {
     int piston = 1, gear = 1;
     for (const auto& part : kit.objects) {
       // TODO(ravib)
-      // part.type and part.pose;
-      do {
-        ROS_INFO_STREAM("Pickup :" << part.type);
-        transform = ur10.getTransfrom("/world", m.getPart(part.type));
-        target_pick.position.x = transform.getOrigin().x();
-        target_pick.position.y = transform.getOrigin().y();
-        target_pick.position.z = transform.getOrigin().z();
+      ROS_INFO_STREAM("Pickup :" << part.type);
+      auto frame = m.getPart(part.type);
 
-        result = ur10.pickup(target_pick);
-        //
-        if (!result) {
-          ROS_WARN_STREAM("Pickup failed");
-        }
-        ur10.move(ur10.home_);
-      } while (!result);
+      result = ur10.robust_pickup(frame);
 
-      if (result) {
-        ROS_INFO_STREAM("Place :" << part.type);
-        target_place =
-            m.findPose(part.pose, "logical_camera_3_kit_tray_1_frame");
-        result = ur10.place(target_place);
-        if (!result) {
-          ROS_WARN_STREAM("Place failed");
-          int count = part.type == "gear_part" ? gear : piston;
-          std::string partFrame = "logical_camera_3_" + part.type + "_" +
-                                  std::to_string(count) + "_frame";
-          ROS_WARN_STREAM(partFrame);
-          transform = ur10.getTransfrom("/world", partFrame);
-          target_pick.position.x = transform.getOrigin().x();
-          target_pick.position.y = transform.getOrigin().y();
-          target_pick.position.z = transform.getOrigin().z();
-
-          auto target = ur10.agv_;
-          target.position.z += 0.5;
-          ur10.move({target});
-          result = ur10.pickup(target_pick);
-          target_place.position.z += 0.025;
-          target_place.orientation = ur10.home_.orientation;
-          std::vector<geometry_msgs::Pose> waypoint = {target_place};
-          ur10.move({target});
-          result = ur10.place(waypoint);
-          ur10.move({ur10.home_});
-        } else {
-          if (part.type == "gear_part")
-            gear++;
-          else
-            piston++;
-        }
-      }
+      result =
+          ur10.robust_place(part.pose, "logical_camera_3_kit_tray_1_frame", 0);
     }
     std::stringstream ss("order_0_kit_");
     ss << count;
     m.send_order("/ariac/agv1", ss.str());
     count++;
+    // ur10.move(ur10.home_joint_angle_);
     ros::Duration(20.0).sleep();
   }
   return 0;
