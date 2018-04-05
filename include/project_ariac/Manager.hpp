@@ -45,8 +45,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <list>
 #include <map>
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 // Custom abstraction
 #include "project_ariac/Sensor.hpp"
 // Custom types
@@ -79,8 +79,10 @@ class Manager {
   void send_order(std::string agv = "/ariac/agv1",
                   std::string kit_id = "order_0_kit_0") const;
   std::vector<geometry_msgs::Pose> look_over_tray(const std::string& part_type);
+
   geometry_msgs::Pose findPose(const geometry_msgs::Pose& inPose,
                                const std::string& header);
+
   float distance(const geometry_msgs::Pose& current,
                  const geometry_msgs::Pose& target);
 

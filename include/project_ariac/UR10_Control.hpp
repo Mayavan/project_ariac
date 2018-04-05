@@ -48,7 +48,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <osrf_gear/VacuumGripperControl.h>
 #include <osrf_gear/VacuumGripperState.h>
 
-
 #include <memory>
 #include <string>
 #include <vector>
@@ -63,19 +62,20 @@ class UR10_Control {
   explicit UR10_Control(const ros::NodeHandle& server);
   ~UR10_Control();
   void gripperAction(const bool action);
-
   void move(const geometry_msgs::Pose& target);
   void move(const std::vector<double>& target_joint);
   void move(const std::vector<geometry_msgs::Pose>& waypoints,
             double velocity_factor = 1.0, double eef_step = 0.01,
             double jump_threshold = 0.0);
-  tf::StampedTransform getTransfrom(const std::string& src,
-                                    const std::string& target);
-  geometry_msgs::Pose target_, home_, agv_;
+  geometry_msgs::Pose getTransfrom(const std::string& src,
+                                   const std::string& target);
+
+  geometry_msgs::Pose target_, home_, agv_[2];
+  std::vector<double> home_joint_angle_;
 
   bool pickup(const geometry_msgs::Pose& target);
-  bool place(geometry_msgs::Pose target);
-  bool place(std::vector<geometry_msgs::Pose> targets);
+  bool place(geometry_msgs::Pose target, int agv = 0);
+  bool place(const std::vector<geometry_msgs::Pose>& targets);
 
  protected:
   void gripperStatusCallback(const GripperState& gripper_status);
@@ -92,9 +92,10 @@ class UR10_Control {
 
   moveit::planning_interface::MoveGroupInterface ur10_;
   moveit::planning_interface::MoveGroupInterface::Plan planner_;
+  tf::TransformListener listener_;
 
   double z_offSet_;
-  std::vector<double> home_joint_angle_;
+
   bool pickup_monitor_, place_monitor_;
 };
 
