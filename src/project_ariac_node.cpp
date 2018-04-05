@@ -37,16 +37,12 @@ int main(int argc, char** argv) {
     for (const auto& part : kit.objects) {
       // TODO(ravib)
       ROS_INFO_STREAM("Pickup :" << part.type);
-      auto t = m.getPart(part.type);
+      auto frame = m.getPart(part.type);
 
-      do {
-        target_pick = ur10.getTransfrom("/world", t);
-        result = ur10.pickup(target_pick);
-      } while(!result);
+      result = ur10.robust_pickup(frame);
 
-      target_place = m.findPose(part.pose, "logical_camera_3_kit_tray_1_frame");
-      result = ur10.place(target_place);
-      if(!result) ROS_WARN_STREAM("Place failed");
+      result =
+          ur10.robust_place(part.pose, "logical_camera_3_kit_tray_1_frame", 0);
     }
     std::stringstream ss("order_0_kit_");
     ss << count;
