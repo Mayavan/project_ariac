@@ -43,8 +43,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <osrf_gear/Order.h>
 #include <std_msgs/String.h>
 // STL
-#include <list>
 #include <map>
+#include <list>
 #include <memory>
 #include <string>
 #include <vector>
@@ -65,8 +65,11 @@ typedef std::shared_ptr<ros::Rate> RatePtr;
 typedef std::shared_ptr<Camera> CameraPtr;
 typedef std::shared_ptr<Order> OrderPtr;
 typedef std::shared_ptr<Agv> AgvPtr;
+/**
+ * @brief      map < part_type, list of poseStamped>
+ */
+typedef std::map<std::string, std::list<geometry_msgs::PoseStamped>> Database;
 
-typedef std::map<std::string, std::list<std::string>> Database;
 /**
  * @brief      Class for manager.
  */
@@ -75,20 +78,16 @@ class Manager : public Interface {
   explicit Manager(const ros::NodeHandle& nh);
   ~Manager();
   void checkInventory();
-  std::string getPart(const std::string& partType);
+  Database processedOrder();
+  geometry_msgs::PoseStamped getPart(const std::string& partType);
   // ARIAC interface
   void start_competition(std::string topic = "/ariac/start_competition") const;
   void end_competition(std::string topic = "/ariac/end_competition") const;
-  OrderMsg getTheOrderMsg();
   void send_order(std::string agv = "/ariac/agv1",
                   std::string kit_id = "order_0_kit_0") const;
+
+  OrderMsg getTheOrderMsg();
   std::vector<geometry_msgs::Pose> look_over_tray(const std::string& part_type);
-
-  geometry_msgs::Pose findPose(const geometry_msgs::Pose& inPose,
-                               const std::string& header);
-
-  float distance(const geometry_msgs::Pose& current,
-                 const geometry_msgs::Pose& target);
 
   bool isAgvReady(const int& no);
   int pick_agv();

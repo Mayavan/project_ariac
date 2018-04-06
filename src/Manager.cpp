@@ -41,6 +41,7 @@ Manager::Manager(const ros::NodeHandle& nh) {
   logical_camera_1_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_1");
   logical_camera_2_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_2");
   logical_camera_3_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_3");
+
   agv_[0] = std::make_shared<Agv>(nh, "/ariac/agv1/state");
   agv_[1] = std::make_shared<Agv>(nh, "/ariac/agv2/state");
   // Init order manager
@@ -63,30 +64,29 @@ void Manager::checkInventory() {
   inventory_.clear();
 
   // add parts from Camera 1
-  size_t count = 1;
   auto image_msg = logical_camera_1_->getMessage();
+  auto frame = logical_camera_1_->getSensorFrame();
   for (const auto& part : image_msg->models) {
-    std::string partFrame = "logical_camera_1_" + part.type + "_" +
-                            std::to_string(count) + "_frame";
-    ROS_DEBUG_STREAM(partFrame);
-    inventory_[part.type].push_back(partFrame);
-    count++;
+    geometry_msgs::PoseStamped p_;
+    p_.pose  = part.pose;
+    p_.header.frame_id = frame;
+    inventory_[part.type].emplace_back(p_);
   }
 
   // add parts from Camera 2
-  count = 1;
   image_msg = logical_camera_2_->getMessage();
+  frame = logical_camera_2_->getSensorFrame();
+
   for (const auto& part : image_msg->models) {
-    std::string partFrame = "logical_camera_2_" + part.type + "_" +
-                            std::to_string(count) + "_frame";
-    ROS_DEBUG_STREAM(partFrame);
-    inventory_[part.type].push_back(partFrame);
-    count++;
+    geometry_msgs::PoseStamped p_;
+    p_.pose  = part.pose;
+    p_.header.frame_id = frame;
+    inventory_[part.type].emplace_back(p_);
   }
 }
 
-std::string Manager::getPart(const std::string& partType) {
-  std::string part = inventory_[partType].front();
+geometry_msgs::PoseStamped Manager::getPart(const std::string& partType) {
+  geometry_msgs::PoseStamped part = inventory_[partType].front();
   inventory_[partType].pop_front();
   return part;
 }
@@ -189,13 +189,6 @@ std::vector<geometry_msgs::Pose> Manager::look_over_tray(
       temp.push_back(part.pose);
     }
   }
-}
-
-float Manager::distance(const geometry_msgs::Pose& current,
-                        const geometry_msgs::Pose& target) {
-  return std::sqrt(std::pow(current.position.x - target.position.x, 2.0) +
-                   std::pow(current.position.y - target.position.y, 2.0) +
-                   std::pow(current.position.z - target.position.z, 2.0));
 }
 
 bool Manager::isAgvReady(const int& no) {

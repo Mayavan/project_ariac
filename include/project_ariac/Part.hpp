@@ -35,23 +35,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <geometry_msgs/Pose.h>
 #include <cmath>
 #include <string>
-namespace peoject_ariac {
+
+namespace project_ariac {
 
 struct Part {
   std::string type_;
-  geometry_msgs::Pose pose_;
-  bool operator==(const Part& cmp) const;
-  float distance(const Part& rhs);
+  geometry_msgs::PoseStamped pose_;
+  std::string frame_;
 };
 
-float Part::distance(const Part& rhs) {
-  return std::sqrt(std::pow(pose_.position.x - rhs.pose_.position.x, 2.0) +
-                   std::pow(pose_.position.y - rhs.pose_.position.y, 2.0) +
-                   std::pow(pose_.position.z - rhs.pose_.position.z, 2.0));
-}
+// inline float distance(const Part& lhs, const Part& rhs) {
+//   return std::sqrt(std::pow(lhs.pose_.position.x - rhs.pose_.position.x, 2.0) +
+//                    std::pow(lhs.pose_.position.y - rhs.pose_.position.y, 2.0) +
+//                    std::pow(lhs.pose_.position.z - rhs.pose_.position.z, 2.0));
+// }
 
-bool Part::operator==(const Part& cmp) const {
-  return (this->type_.compare(cmp.type_) == 0) && (this->distance(cmp) < 0.01);
-}
-
+// inline bool operator==(const Part& lhs, const Part& rhs) {
+//   return (lhs.type_.compare(rhs.type_) == 0) && (distance(lhs, rhs) < 0.01);
+// }
 }  // namespace peoject_ariac

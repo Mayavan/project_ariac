@@ -64,23 +64,28 @@ geometry_msgs::Pose Interface::getTransfrom(const std::string& src,
   return std::move(pose);
 }
 
-geometry_msgs::Pose Interface::getPose(const geometry_msgs::Pose& inPose,
-                                       const std::string& ref) {
+geometry_msgs::PoseStamped Interface::getPose(
+    const geometry_msgs::PoseStamped& inPose, std::string ref) {
   geometry_msgs::PoseStamped outPose_;
-  geometry_msgs::PoseStamped inPose_;
-
-  inPose_.header.frame_id = ref;
-  inPose_.pose = inPose;
-
   try {
-    transformStamped_ = buffer_.lookupTransform("world", ref, ros::Time::now(),
-                                                ros::Duration(10));
-    tf2::doTransform(inPose_, outPose_, transformStamped_);
-    // listener_.transformPose("/world", inPose_, outPose_);
+    transformStamped_ = buffer_.lookupTransform(
+        ref, inPose.header.frame_id, ros::Time::now(), ros::Duration(10));
+
+    tf2::doTransform(inPose, outPose_, transformStamped_);
   } catch (tf2::TransformException& ex) {
     ROS_ERROR("%s", ex.what());
     ros::Duration(0.5).sleep();
   }
 
+  return std::move(outPose_);
+}
+
+geometry_msgs::Pose Interface::getPose(const geometry_msgs::Pose& inPose,
+                            const std::string& frame, std::string ref) {
+  geometry_msgs::PoseStamped inPose_;
+  inPose_.header.frame_id = frame;
+  inPose_.pose = inPose;
+
+  geometry_msgs::PoseStamped outPose_ = getPose(inPose_, ref);
   return std::move(outPose_.pose);
 }

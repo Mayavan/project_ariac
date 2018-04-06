@@ -52,6 +52,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <vector>
 
+#include "project_ariac/Part.hpp"
 #include "project_ariac/Sensor.hpp"
 #include "project_ariac/Interface.hpp"
 
@@ -79,7 +80,7 @@ class UR10_Control : public Interface {
 
   bool pickup(const geometry_msgs::Pose& target);
 
-  bool robust_pickup(const std::string& frame, int max_try = 5);
+  bool robust_pickup(const geometry_msgs::PoseStamped& pose, int max_try = 5);
 
   bool place(const std::vector<geometry_msgs::Pose>& targets);
   bool place(geometry_msgs::Pose target, int agv = 0);
