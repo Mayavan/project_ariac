@@ -199,12 +199,15 @@ bool UR10_Control::pickup(const geometry_msgs::Pose& target) {
   // return res.result;i
 }
 
-bool UR10_Control::robust_pickup(const std::string& frame, int max_try) {
+bool UR10_Control::robust_pickup(const geometry_msgs::PoseStamped& pose,
+                                 int max_try) {
   bool result;
   do {
-    auto target_pick = getTransfrom("world", frame);
-    result = pickup(target_pick);
+    // PoseStamped had header and getPose will give pose with world
+    auto target_pick = getPose(pose);
+    result = pickup(target_pick.pose);
     max_try--;
+    // it will try until sucess or max try
   } while (!result || max_try == 0);
   return result;
 }
@@ -248,8 +251,9 @@ bool UR10_Control::place(const std::vector<geometry_msgs::Pose>& targets) {
 
   if (result) {
     // ready for next part
-
+    initConstraint();
     move({target_, home_});
+    ur10_.clearPathConstraints();
     // move(home_joint_angle_);
   }
   return result;
@@ -285,7 +289,7 @@ void UR10_Control::initConstraint() {
   for (const auto& joint : joints) {
     jcm.joint_name = joint;
     jcm.position = home_joint_angle_[count];
-    jcm.tolerance_above = 3.0;
+    jcm.tolerance_above = 1.0;
     jcm.tolerance_below = -3.0;
     jcm.weight = 1.0;
     ur10_constraints.joint_constraints.push_back(jcm);

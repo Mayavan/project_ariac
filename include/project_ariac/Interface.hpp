@@ -48,8 +48,11 @@ class Interface {
   ~Interface();
   geometry_msgs::Pose getTransfrom(const std::string& src,
                                    const std::string& target);
+  geometry_msgs::PoseStamped getPose(const geometry_msgs::PoseStamped& inPose,
+                                     std::string ref = "world");
   geometry_msgs::Pose getPose(const geometry_msgs::Pose& inPose,
-                              const std::string& ref);
+                              const std::string& frame,
+                              std::string ref = "world");
 
  protected:
   tf2_ros::Buffer buffer_;

@@ -88,5 +88,5 @@ bool Sensor<T>::isPopulated() {
 
 template <class T>
 std::string Sensor<T>::getSensorFrame() {
-  return topic_.substr(topic_.find_last_of('/')) + "_frame";
+  return topic_.substr(topic_.find_last_of('/')+1) + "_frame";
 }

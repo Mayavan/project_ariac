@@ -37,9 +37,8 @@ int main(int argc, char** argv) {
     for (const auto& part : kit.objects) {
       // TODO(ravib)
       ROS_INFO_STREAM("Pickup :" << part.type);
-      auto frame = m.getPart(part.type);
-
-      result = ur10.robust_pickup(frame);
+      auto p = m.getPart(part.type);
+      result = ur10.robust_pickup(p);
 
       result =
           ur10.robust_place(part.pose, "logical_camera_3_kit_tray_1_frame", 0);
