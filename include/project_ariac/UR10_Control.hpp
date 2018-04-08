@@ -53,7 +53,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 
 #include "project_ariac/Interface.hpp"
-#include "project_ariac/Part.hpp"
 #include "project_ariac/Sensor.hpp"
 
 typedef osrf_gear::VacuumGripperState GripperState;
