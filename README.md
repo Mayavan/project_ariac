@@ -13,7 +13,7 @@ $ cd ~/catkin_ws/
 $ catkin_make
 $ source devel/setup.bash
 $ cd src/
-$ git clone --recursive https://github.com/raviBhadeshiya/enigma.git
+$ git clone --recursive https://github.com/raviBhadeshiya/<name>.git
 $ git checkout <name_of_branch>
 $ cd ..
 $ catkin_make

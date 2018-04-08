@@ -60,6 +60,9 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
   ur10_.setPlanningTime(planning_time);
   ur10_.setNumPlanningAttempts(planning_attempt);
   ur10_.allowReplanning(true);
+  ur10_.setMaxAccelerationScalingFactor(0.5);
+  ur10_.setMaxVelocityScalingFactor(0.5);
+
   // ur10_.setEndEffector("vacuum_gripper_link");
   move(home_joint_angle_);  // Home condition
 
@@ -85,49 +88,41 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
 
 UR10_Control::~UR10_Control() { ur10_.stop(); }
 
-void UR10_Control::move(const geometry_msgs::Pose& target) {
-  ros::AsyncSpinner spinner(4);
+bool UR10_Control::move() {
+  ros::AsyncSpinner spinner(1);
   spinner.start();
 
+  ROS_INFO("Planning start");
+
+  bool success = (ur10_.plan(planner_) ==
+                  moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  if (success) {
+    ROS_INFO("Planned success.");
+    // ur10_.move();
+    ur10_.execute(planner_);
+  } else {
+    ROS_WARN("Planned unsucess!");
+  }
+
+  return success;
+}
+
+bool UR10_Control::move(const geometry_msgs::Pose& target) {
   ur10_.setPoseTarget(target);
-
-  ROS_INFO("Planning start");
-
-  bool success = (ur10_.plan(planner_) ==
-                  moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  if (success) {
-    ROS_INFO("Planned success.");
-    ur10_.move();
-  } else {
-    ROS_WARN("Planned unsucess!");
-  }
+  return move();
 }
 
-void UR10_Control::move(const std::vector<double>& target_joint) {
-  ros::AsyncSpinner spinner(4);
-  spinner.start();
-  // std::vector<double> target = {0, 3 , -1, 1.9, 4, 4.7, 0};
-
+bool UR10_Control::move(const std::vector<double>& target_joint) {
   ur10_.setJointValueTarget(target_joint);
-  ur10_.setJointValueTarget(home_joint_angle_);
-
-  ROS_INFO("Planning start");
-
-  bool success = (ur10_.plan(planner_) ==
-                  moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  if (success) {
-    ROS_INFO("Planned success.");
-    ur10_.move();
-  } else {
-    ROS_WARN("Planned unsucess!");
-  }
+  return move();
 }
 
-void UR10_Control::move(const std::vector<geometry_msgs::Pose>& waypoints,
+bool UR10_Control::move(const std::vector<geometry_msgs::Pose>& waypoints,
                         double velocity_factor, double eef_step,
                         double jump_threshold) {
+  // ros::AsyncSpinner spinner(1);
+  // spinner.start();
   moveit_msgs::RobotTrajectory trajectory;
-  ur10_.setMaxAccelerationScalingFactor(velocity_factor);
   ur10_.setMaxVelocityScalingFactor(velocity_factor);
 
   double fraction = ur10_.computeCartesianPath(waypoints, eef_step,
@@ -138,7 +133,9 @@ void UR10_Control::move(const std::vector<geometry_msgs::Pose>& waypoints,
 
   if (fraction > 0.9) {
     ur10_.execute(planner_);
+    return true;
   }
+  return false;
 }
 
 void UR10_Control::gripperAction(const bool action) {
@@ -172,25 +169,22 @@ bool UR10_Control::pickup(const geometry_msgs::Pose& target) {
   waypoints.reserve(2);
 
   target_.position = target.position;
-  target_.position.z += 0.5;
+  target_.position.z += 0.4;
+  waypoints.push_back(target_);
 
-  // move({target_}, 0.5, 0.005);
-  ur10_.setMaxAccelerationScalingFactor(0.1);
-  ur10_.setMaxVelocityScalingFactor(0.1);
-  // move(target_);
+  target_.position.z = target.position.z + z_offSet_;
   waypoints.push_back(target_);
 
   gripperAction(gripper::CLOSE);
   // should stop after part is being picked
   pickup_monitor_ = true;
-  target_.position.z = target.position.z + z_offSet_;
-  waypoints.push_back(target_);
-
-  move(waypoints);
+  if (!move(waypoints)) return false;
   // move({target_}, 0.1, 0.001);  // Grasp move
   ros::Duration(1.0).sleep();
   pickup_monitor_ = false;
 
+  target_.position.z += 0.5;
+  move({target_});
   // should attach after execution
   // it means, robot pick up part
   ros::spinOnce();
@@ -202,13 +196,19 @@ bool UR10_Control::pickup(const geometry_msgs::Pose& target) {
 bool UR10_Control::robust_pickup(const geometry_msgs::PoseStamped& pose,
                                  int max_try) {
   bool result;
+  // hover below camera
+  // auto t = getTransfrom("world", "bin_6_frame");
+  // t.orientation = home_.orientation;
+  // t.position.z = 0.2;
+  // move({t});
   do {
     // PoseStamped had header and getPose will give pose with world
+    ROS_INFO_STREAM("Pick up try:" << max_try);
     auto target_pick = getPose(pose);
     result = pickup(target_pick.pose);
     max_try--;
     // it will try until sucess or max try
-  } while (!result || max_try == 0);
+  } while (!result && max_try > 0);
   return result;
 }
 
@@ -218,8 +218,8 @@ bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
   std::vector<geometry_msgs::Pose> waypoints;
   waypoints.reserve(3);
 
-  target_.position.z += 0.5;
-  waypoints.push_back(target_);
+  // target_.position.z += 0.5;
+  // waypoints.push_back(target_);
 
   target_.position = agv_[agv].position;
   target_.position.y = target.position.y;
@@ -229,7 +229,6 @@ bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
   target.orientation = home_.orientation;
   waypoints.push_back(target);
 
-  // auto waypoints = {target_, agv_[agv], target};
   // it will stop the motion,
   // if robot drop part
   return place(waypoints);
@@ -248,13 +247,11 @@ bool UR10_Control::place(const std::vector<geometry_msgs::Pose>& targets) {
   ros::spinOnce();
   bool result = gripper_state_.attached;
   gripperAction(gripper::OPEN);
-
   if (result) {
-    // ready for next part
-    initConstraint();
+    //   // ready for next part
+    //   // target_.position.z += 0.1;
     move({target_, home_});
-    ur10_.clearPathConstraints();
-    // move(home_joint_angle_);
+    //   // move(home_joint_angle_);
   }
   return result;
 }
@@ -271,13 +268,14 @@ bool UR10_Control::robust_place(const geometry_msgs::Pose& target,
     ROS_WARN_STREAM("Robust Place failed..!");
     //   robust_pickup("find the part");
     //   place(target_place, agv);
+  } else {
+    // move(home_joint_angle_);
   }
 
   return result;
 }
 
 void UR10_Control::initConstraint() {
-  ur10_.clearPathConstraints();
   moveit_msgs::Constraints ur10_constraints;
   moveit_msgs::JointConstraint jcm;
   auto joints = {"elbow_joint",         "linear_arm_actuator_joint",

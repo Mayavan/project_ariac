@@ -52,9 +52,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <vector>
 
+#include "project_ariac/Interface.hpp"
 #include "project_ariac/Part.hpp"
 #include "project_ariac/Sensor.hpp"
-#include "project_ariac/Interface.hpp"
 
 typedef osrf_gear::VacuumGripperState GripperState;
 typedef std::shared_ptr<planning_scene::PlanningScene> PlanningScenePtr;
@@ -64,10 +64,10 @@ class UR10_Control : public Interface {
   explicit UR10_Control(const ros::NodeHandle& server);
   ~UR10_Control();
   void gripperAction(const bool action);
-  void move(const geometry_msgs::Pose& target);
-  void move(const std::vector<double>& target_joint);
-  void move(const std::vector<geometry_msgs::Pose>& waypoints,
-            double velocity_factor = 1.0, double eef_step = 0.01,
+  bool move(const geometry_msgs::Pose& target);
+  bool move(const std::vector<double>& target_joint);
+  bool move(const std::vector<geometry_msgs::Pose>& waypoints,
+            double velocity_factor = 1.0, double eef_step = 0.005,
             double jump_threshold = 0.0);
 
   // geometry_msgs::Pose getTransfrom(const std::string& src,
@@ -79,7 +79,6 @@ class UR10_Control : public Interface {
   std::vector<double> home_joint_angle_;
 
   bool pickup(const geometry_msgs::Pose& target);
-
   bool robust_pickup(const geometry_msgs::PoseStamped& pose, int max_try = 5);
 
   bool place(const std::vector<geometry_msgs::Pose>& targets);
@@ -90,14 +89,13 @@ class UR10_Control : public Interface {
  protected:
   void gripperStatusCallback(const GripperState& gripper_status);
   void initConstraint();
+  bool move();
 
  private:
   ros::NodeHandle nh_;
   // geometry_msgs::Pose target_, home_, agv_;
   ros::Subscriber gripper_sensor_;
-  ros::ServiceServer pickupServer_, placeServer_;
   ros::ServiceClient gripper_;
-
   GripperState gripper_state_;
 
   moveit::planning_interface::MoveGroupInterface ur10_;
@@ -113,4 +111,3 @@ namespace gripper {
 const bool OPEN = false;
 const bool CLOSE = true;
 }  // namespace gripper
-

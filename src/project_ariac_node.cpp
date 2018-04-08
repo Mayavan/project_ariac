@@ -30,24 +30,31 @@ int main(int argc, char** argv) {
   Manager m(node);
   m.start_competition();
   m.checkInventory();
+
   auto ariac_order = m.getTheOrderMsg();
   // wait for order
   for (const auto& kit : ariac_order->kits) {
-    int piston = 1, gear = 1;
-    for (const auto& part : kit.objects) {
-      // TODO(ravib)
+    // for (const auto& part : kit.objects) {
+    auto tasks = kit.objects;
+    // TODO(ravib)
+    while (!tasks.empty()) {
+      auto part = tasks.front();
       ROS_INFO_STREAM("Pickup :" << part.type);
       auto p = m.getPart(part.type);
-      result = ur10.robust_pickup(p);
-
-      result =
-          ur10.robust_place(part.pose, "logical_camera_3_kit_tray_1_frame", 0);
+      result = ur10.robust_pickup(p, 1);  // max_try = 1
+      ROS_INFO_STREAM("Pick up complete:" << result);
+      if (result) {
+        result = ur10.robust_place(part.pose,
+                                   "logical_camera_4_kit_tray_2_frame", 1);
+        if (result) tasks.erase(tasks.begin());
+      }
     }
     std::stringstream ss("order_0_kit_");
-    ss << count;
-    m.send_order("/ariac/agv1", ss.str());
+    ss << std::to_string(count);
+    ROS_WARN_STREAM(ss.str());
+    m.send_order("/ariac/agv2", ss.str());
     count++;
-    // ur10.move(ur10.home_joint_angle_);
+    ur10.move(ur10.home_joint_angle_);
     ros::Duration(20.0).sleep();
   }
   return 0;

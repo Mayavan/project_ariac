@@ -33,34 +33,37 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #pragma once
 // ROS interface
-#include <ros/ros.h>
 #include <geometry_msgs/Pose.h>
-#include <tf/transform_listener.h>
+#include <ros/ros.h>
 // Ariac interface
-#include <osrf_gear/LogicalCameraImage.h>
 #include <osrf_gear/AGVControl.h>
-#include <std_srvs/Trigger.h>
+#include <osrf_gear/LogicalCameraImage.h>
 #include <osrf_gear/Order.h>
+#include <sensor_msgs/JointState.h>
 #include <std_msgs/String.h>
+#include <std_srvs/Trigger.h>
 // STL
+// #include <list>
 #include <map>
-#include <list>
 #include <memory>
 #include <string>
 #include <vector>
 // Custom abstraction
-#include "project_ariac/Sensor.hpp"
 #include "project_ariac/Interface.hpp"
+#include "project_ariac/Sensor.hpp"
 
 // Custom types
 typedef osrf_gear::LogicalCameraImage::ConstPtr CameraMsg;
+typedef sensor_msgs::JointState::ConstPtr JointMsg;
 typedef osrf_gear::Order::ConstPtr OrderMsg;
 
 typedef Sensor<std_msgs::String::ConstPtr> Agv;
+typedef Sensor<JointMsg> ArmState;
 typedef Sensor<CameraMsg> Camera;
 typedef Sensor<OrderMsg> Order;
 
 typedef std::shared_ptr<ros::NodeHandle> NodePtr;
+typedef std::shared_ptr<ArmState> ArmStatePtr;
 typedef std::shared_ptr<ros::Rate> RatePtr;
 typedef std::shared_ptr<Camera> CameraPtr;
 typedef std::shared_ptr<Order> OrderPtr;
@@ -68,7 +71,7 @@ typedef std::shared_ptr<Agv> AgvPtr;
 /**
  * @brief      map < part_type, list of poseStamped>
  */
-typedef std::map<std::string, std::list<geometry_msgs::PoseStamped>> Database;
+typedef std::map<std::string, std::vector<geometry_msgs::PoseStamped>> Database;
 
 /**
  * @brief      Class for manager.
@@ -94,10 +97,11 @@ class Manager : public Interface {
 
  private:
   NodePtr nh_;
-  CameraPtr logical_camera_1_, logical_camera_2_, logical_camera_3_;
+  CameraPtr logical_camera_1_, logical_camera_2_, logical_camera_3_,
+      logical_camera_4_;
   AgvPtr agv_[2];
   OrderPtr order_manager_;
   RatePtr rate_;
+  ArmStatePtr arm_state_;
   Database inventory_;
-  tf::TransformListener listener_;
 };

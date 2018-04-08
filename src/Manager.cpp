@@ -41,9 +41,12 @@ Manager::Manager(const ros::NodeHandle& nh) {
   logical_camera_1_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_1");
   logical_camera_2_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_2");
   logical_camera_3_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_3");
+  logical_camera_4_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_4");
 
   agv_[0] = std::make_shared<Agv>(nh, "/ariac/agv1/state");
   agv_[1] = std::make_shared<Agv>(nh, "/ariac/agv2/state");
+
+  arm_state_ = std::make_shared<ArmState>(nh, "/ariac/joint_states");
   // Init order manager
   order_manager_ = std::make_shared<Order>(nh, "/ariac/orders");
   ROS_DEBUG_STREAM("Manager is init..");
@@ -53,52 +56,50 @@ Manager::~Manager() { inventory_.clear(); }
 
 void Manager::checkInventory() {
   // Wait until camera see
-  while (!logical_camera_1_->isPopulated() &&
-         !logical_camera_2_->isPopulated()) {
+  do {
     ROS_INFO_STREAM("Scanning the item");
     ros::spinOnce();
     rate_->sleep();
-  }
+  } while (!logical_camera_1_->isPopulated() &&
+           !logical_camera_2_->isPopulated());
 
   // reset inventory for update
   inventory_.clear();
+  std::string frame;
+  CameraMsg image_msg;
 
-  // add parts from Camera 1
-  auto image_msg = logical_camera_1_->getMessage();
-  auto frame = logical_camera_1_->getSensorFrame();
-  for (const auto& part : image_msg->models) {
-    geometry_msgs::PoseStamped p_;
-    p_.pose  = part.pose;
-    p_.header.frame_id = frame;
-    inventory_[part.type].emplace_back(p_);
-  }
-
-  // add parts from Camera 2
-  image_msg = logical_camera_2_->getMessage();
-  frame = logical_camera_2_->getSensorFrame();
-
-  for (const auto& part : image_msg->models) {
-    geometry_msgs::PoseStamped p_;
-    p_.pose  = part.pose;
-    p_.header.frame_id = frame;
-    inventory_[part.type].emplace_back(p_);
+  for (auto itr : {logical_camera_1_, logical_camera_2_}) {
+    // add parts from Camera
+    image_msg = itr->getMessage();
+    frame = itr->getSensorFrame();
+    for (const auto& part : image_msg->models) {
+      geometry_msgs::PoseStamped p_;
+      p_.pose = part.pose;
+      p_.header.frame_id = frame;
+      inventory_[part.type].emplace_back(p_);
+    }
   }
 }
 
 geometry_msgs::PoseStamped Manager::getPart(const std::string& partType) {
-  geometry_msgs::PoseStamped part = inventory_[partType].front();
-  inventory_[partType].pop_front();
+  // geometry_msgs::PoseStamped part = inventory_[partType].front();
+  // assumption inventory has enough part
+  if (inventory_[partType].empty()) checkInventory();
+  auto it = inventory_[partType].begin();
+  geometry_msgs::PoseStamped part = *it;
+  inventory_[partType].erase(it);
   return part;
 }
-
-/// Start the competition by waiting for and then calling the start ROS Service.
+/// Start the competition by waiting for and then calling the start ROS
+/// Service.
 void Manager::start_competition(std::string topic) const {
   // Create a Service client for the correct service, i.e.
   // '/ariac/start_competition'.
   ros::ServiceClient start_client =
       nh_->serviceClient<std_srvs::Trigger>(topic);
   // If it's not already ready, wait for it to be ready.
-  // Calling the Service using the client before the server is ready would fail.
+  // Calling the Service using the client before the server is ready would
+  // fail.
   if (!start_client.exists()) {
     ROS_INFO("Waiting for the competition to be ready...");
     start_client.waitForExistence();
@@ -115,14 +116,16 @@ void Manager::start_competition(std::string topic) const {
   }
 }
 
-/// End the competition by waiting for and then calling the start ROS Service.
+/// End the competition by waiting for and then calling the start ROS
+/// Service.
 void Manager::end_competition(std::string topic) const {
   // Create a Service client for the correct service, i.e.
   // '/ariac/end_competition'.
   ros::ServiceClient start_client =
       nh_->serviceClient<std_srvs::Trigger>(topic);
   // If it's not already ready, wait for it to be ready.
-  // Calling the Service using the client before the server is ready would fail.
+  // Calling the Service using the client before the server is ready would
+  // fail.
   if (!start_client.exists()) {
     ROS_INFO("Waiting for the competition to be ready...");
     start_client.waitForExistence();
@@ -143,7 +146,8 @@ void Manager::send_order(std::string agv, std::string kit_id) const {
   ros::ServiceClient agv_client =
       nh_->serviceClient<osrf_gear::AGVControl>(agv);
   // If it's not already ready, wait for it to be ready.
-  // Calling the Service using the client before the server is ready would fail.
+  // Calling the Service using the client before the server is ready would
+  // fail.
   if (!agv_client.exists()) {
     ROS_INFO("Waiting for the AGV client to be ready...");
     agv_client.waitForExistence();
@@ -173,6 +177,26 @@ OrderMsg Manager::getTheOrderMsg() {
   return order_manager_->getMessage();
 }
 
+// Manager::confirm(const geometry_msgs::Pose& target, const std::string&
+// partType,
+//                  const int& agv) {
+//   auto camera = agv == 0 ? logical_camera_3_ : logical_camera_4_;
+
+//   do {
+//     ROS_INFO_STREAM("Looking over tray...");
+//     ros::spinOnce();
+//     rate_->sleep();
+//   } while (camera->isPopulated());
+
+//   auto msg = camera->getMessage();
+//   auto frame = camera->getSensorFrame();
+//   for (const auto& part : msg->models) {
+//     if (part.type.compare(part_type) == 0) {
+//       continue;
+//     }
+//   }
+// }
+
 std::vector<geometry_msgs::Pose> Manager::look_over_tray(
     const std::string& part_type) {
   ros::spinOnce();
@@ -193,7 +217,7 @@ std::vector<geometry_msgs::Pose> Manager::look_over_tray(
 
 bool Manager::isAgvReady(const int& no) {
   while (!agv_[no]->isPopulated()) {
-    ROS_INFO_STREAM("Looking over tray....");
+    ROS_INFO_STREAM("Agv status check....");
     ros::spinOnce();
     rate_->sleep();
   }
@@ -208,5 +232,5 @@ int Manager::pick_agv() {
     ros::spinOnce();
     rate_->sleep();
   }
-  return isAgvReady(0) ? 1 : 2;
+  return isAgvReady(0) ? 0 : 1;
 }

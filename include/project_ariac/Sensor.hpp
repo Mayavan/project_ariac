@@ -68,10 +68,12 @@ Sensor<T>::Sensor(const ros::NodeHandle& nh, const std::string& topic)
 }
 
 template <class T>
-Sensor<T>::~Sensor() {}
+Sensor<T>::~Sensor() { populated_ = false; }
 
 template <class T>
 T Sensor<T>::getMessage() {
+  ros::spinOnce();
+  ros::Duration(0.1).sleep();
   return msg_;
 }
 
