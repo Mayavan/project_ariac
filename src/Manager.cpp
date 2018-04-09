@@ -177,42 +177,43 @@ OrderMsg Manager::getTheOrderMsg() {
   return order_manager_->getMessage();
 }
 
-// Manager::confirm(const geometry_msgs::Pose& target, const std::string&
-// partType,
-//                  const int& agv) {
-//   auto camera = agv == 0 ? logical_camera_3_ : logical_camera_4_;
-
-//   do {
-//     ROS_INFO_STREAM("Looking over tray...");
-//     ros::spinOnce();
-//     rate_->sleep();
-//   } while (camera->isPopulated());
-
-//   auto msg = camera->getMessage();
-//   auto frame = camera->getSensorFrame();
-//   for (const auto& part : msg->models) {
-//     if (part.type.compare(part_type) == 0) {
-//       continue;
-//     }
-//   }
-// }
+bool Manager::is_same(const geometry_msgs::Pose& p1,
+                      const geometry_msgs::Pose& p2) {
+  double t = std::pow(p1.position.x - p2.position.x, 2) +
+             std::pow(p1.position.y - p2.position.y, 2) +
+             std::pow(p1.position.z - p2.position.z, 2);
+  return t < std::pow(0.003, 2);
+}
 
 std::vector<geometry_msgs::Pose> Manager::look_over_tray(
-    const std::string& part_type) {
-  ros::spinOnce();
-  rate_->sleep();
-  while (!logical_camera_3_->isPopulated()) {
-    ROS_INFO_STREAM("Looking over tray....");
+    const geometry_msgs::Pose& target, const std::string& partType,
+    const int& agv) {
+  auto camera = agv == 0 ? logical_camera_3_ : logical_camera_4_;
+
+  do {
+    ROS_INFO_STREAM("Looking over tray...");
     ros::spinOnce();
     rate_->sleep();
-  }
-  std::vector<geometry_msgs::Pose> temp;
-  auto image_msg = logical_camera_3_->getMessage();
-  for (const auto& part : image_msg->models) {
-    if (part.type.compare(part_type) == 0) {
-      temp.push_back(part.pose);
+  } while (!camera->isPopulated());
+
+  std::vector<geometry_msgs::Pose> v;
+  v.reserve(1);
+
+  geometry_msgs::PoseStamped temp, result;
+  temp.header.frame_id = camera->getSensorFrame();
+  auto msg = camera->getMessage();
+  auto frame = camera->getSensorFrame();
+  for (const auto& part : msg->models) {
+    if (part.type.compare(partType) == 0) {
+      temp.pose = part.pose;
+      result = getPose(temp);
+      if (!is_same(result.pose, target)) {
+        v.emplace_back(result.pose);
+        return v;
+      }
     }
   }
+  return v;
 }
 
 bool Manager::isAgvReady(const int& no) {

@@ -90,7 +90,12 @@ class Manager : public Interface {
                   std::string kit_id = "order_0_kit_0") const;
 
   OrderMsg getTheOrderMsg();
-  std::vector<geometry_msgs::Pose> look_over_tray(const std::string& part_type);
+
+  std::vector<geometry_msgs::Pose> look_over_tray(
+      const geometry_msgs::Pose& target, const std::string& partType,
+      const int& agv);
+
+  bool is_same(const geometry_msgs::Pose& p1, const geometry_msgs::Pose& p2);
 
   bool isAgvReady(const int& no);
   int pick_agv();
@@ -105,3 +110,4 @@ class Manager : public Interface {
   ArmStatePtr arm_state_;
   Database inventory_;
 };
+

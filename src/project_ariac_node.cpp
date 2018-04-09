@@ -11,6 +11,14 @@
 #include <sstream>
 #include "project_ariac/Manager.hpp"
 #include "project_ariac/UR10_Control.hpp"
+/**
+ * @TODO(ravib)
+ * pick up moving part
+ * choose agv method for multitasking
+ * refactor high level logic
+ * remove unnecessary shared_ptr and make it unique_ptr
+ * doxygen doc comment
+ */
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "project_ariac_node");
@@ -20,42 +28,65 @@ int main(int argc, char** argv) {
 
   bool run, result;
   int count = 0;
-  private_node_handle.param("run", run, false);
-
+  // private_node_handle.param("run", run, false);
   UR10_Control ur10(private_node_handle);
 
   geometry_msgs::Pose target_pick, target_place;
   tf::StampedTransform transform;
 
   Manager m(node);
+  // start
   m.start_competition();
+  // update inventory
   m.checkInventory();
-
+  // take order
   auto ariac_order = m.getTheOrderMsg();
   // wait for order
   for (const auto& kit : ariac_order->kits) {
-    // for (const auto& part : kit.objects) {
     auto tasks = kit.objects;
     // TODO(ravib)
+    // not proper but its work around for competition
+    // refactor need
+
+    // Do until every part is placed
     while (!tasks.empty()) {
       auto part = tasks.front();
       ROS_INFO_STREAM("Pickup :" << part.type);
       auto p = m.getPart(part.type);
+      // pick up part
       result = ur10.robust_pickup(p, 1);  // max_try = 1
       ROS_INFO_STREAM("Pick up complete:" << result);
+      // if scuess than place or pick another part
       if (result) {
+        // place
         result = ur10.robust_place(part.pose,
                                    "logical_camera_4_kit_tray_2_frame", 1);
-        if (result) tasks.erase(tasks.begin());
+        // place failed
+        if (!result) {
+          // check over tray
+          p.pose = m.getPose(part.pose, "logical_camera_4_kit_tray_2_frame");
+          auto v = m.look_over_tray(p.pose, part.type, 1);
+          // if tray has part than pick and place to correct postion
+          if (!v.empty()) {
+            ROS_INFO_STREAM("Incorrect postion on tray found");
+            if (ur10.pickup(v.front()))
+              if (ur10.place(p.pose, 1)) tasks.erase(tasks.begin());
+          }
+        } else {
+          tasks.erase(
+              tasks.begin());  // part place sucess thn remove from tasks list
+        }
       }
     }
-    std::stringstream ss("order_0_kit_");
-    ss << std::to_string(count);
-    ROS_WARN_STREAM(ss.str());
-    m.send_order("/ariac/agv2", ss.str());
+    // after completing all task send order
+    std::string ss = "order_0_kit_" + std::to_string(count);
+    ROS_WARN_STREAM(ss);
+    m.send_order("/ariac/agv2", ss);
     count++;
     ur10.move(ur10.home_joint_angle_);
-    ros::Duration(20.0).sleep();
+    ros::Duration(20.0).sleep();  // wait for agv to avilable
   }
+
+  m.end_competition();
   return 0;
 }

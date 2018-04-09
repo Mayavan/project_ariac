@@ -65,7 +65,7 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
 
   // ur10_.setEndEffector("vacuum_gripper_link");
   move(home_joint_angle_);  // Home condition
-
+  ros::Duration(0.5).sleep();
   // Find pose of home position
   home_ = this->getTransfrom(base_link, end_link);
   target_ = home_;
@@ -178,7 +178,7 @@ bool UR10_Control::pickup(const geometry_msgs::Pose& target) {
   gripperAction(gripper::CLOSE);
   // should stop after part is being picked
   pickup_monitor_ = true;
-  if (!move(waypoints)) return false;
+  if (!move(waypoints, 1.0, 0.001)) return false;
   // move({target_}, 0.1, 0.001);  // Grasp move
   ros::Duration(1.0).sleep();
   pickup_monitor_ = false;
@@ -240,7 +240,7 @@ bool UR10_Control::place(const std::vector<geometry_msgs::Pose>& targets) {
   // it will stop the motion,
   // if robot drop part
   place_monitor_ = true;
-  move(targets, 0.5, 0.005);
+  move(targets, 0.5, 0.001);
   place_monitor_ = false;
   // should attach before openning
   // robot didn't drop part
