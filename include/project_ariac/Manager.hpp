@@ -88,10 +88,9 @@ public:
   void end_competition(std::string topic = "/ariac/end_competition") const;
   void send_order(std::string agv = "/ariac/agv1",
                   std::string kit_id = "order_0_kit_0") const;
-
   OrderMsg getTheOrderMsg();
 
-  std::vector<geometry_msgs::Pose>
+  std::vector<geometry_msgs::PoseStamped>
   look_over_tray(const geometry_msgs::Pose &target, const std::string &partType,
                  const int &agv);
   bool isAgvReady(const int &no);

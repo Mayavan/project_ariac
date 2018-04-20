@@ -177,7 +177,7 @@ OrderMsg Manager::getTheOrderMsg() {
   return order_manager_->getMessage();
 }
 
-std::vector<geometry_msgs::Pose>
+std::vector<geometry_msgs::PoseStamped>
 Manager::look_over_tray(const geometry_msgs::Pose &target,
                         const std::string &partType, const int &agv) {
   auto camera = agv == 0 ? logical_camera_3_ : logical_camera_4_;
@@ -188,19 +188,19 @@ Manager::look_over_tray(const geometry_msgs::Pose &target,
     rate_->sleep();
   } while (!camera->isPopulated());
 
-  std::vector<geometry_msgs::Pose> v;
+  std::vector<geometry_msgs::PoseStamped> v;
   v.reserve(1);
 
   geometry_msgs::PoseStamped temp, result;
   temp.header.frame_id = camera->getSensorFrame();
   auto msg = camera->getMessage();
-  auto frame = camera->getSensorFrame();
   for (const auto &part : msg->models) {
     if (part.type.compare(partType) == 0) {
       temp.pose = part.pose;
       result = getPose(temp);
       if (!is_same(result.pose, target)) {
-        v.emplace_back(result.pose);
+        result.header.frame_id = "world";
+        v.emplace_back(result);
         return v;
       }
     }

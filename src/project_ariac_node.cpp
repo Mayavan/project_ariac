@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
           // if tray has part than pick and place to correct postion
           if (!v.empty()) {
             ROS_INFO_STREAM("Incorrect postion on tray found");
-            if (ur10.pickup(v.front()))
+            if (ur10.robust_pickup(v.front(), 1))
               if (ur10.place(p.pose, agv))
                 tasks.erase(tasks.begin());
           }
