@@ -221,11 +221,11 @@ bool Manager::isAgvReady(const int &no) {
 int Manager::pick_agv() {
   ROS_INFO_STREAM("Checking agvs state.");
 
-  do{
+  do {
     ros::spinOnce();
     ROS_WARN_STREAM("Both Agvs are busy!!");
     rate_->sleep();
-  }while (!isAgvReady(0) || !isAgvReady(1));
-  
-  return isAgvReady(0) ? 0 : 1;
+  } while (!isAgvReady(0) || !isAgvReady(1));
+
+  return isAgvReady(1) ? 1 : 0;
 }

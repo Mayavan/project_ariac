@@ -20,8 +20,8 @@
  * doxygen doc comment
  */
 
-# define CAMERA_OVER_TRAY_ONE 3
-# define CAMERA_OVER_TRAY_TWO 4
+#define CAMERA_OVER_TRAY_ONE 3
+#define CAMERA_OVER_TRAY_TWO 4
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "project_ariac_node");
@@ -61,11 +61,14 @@ int main(int argc, char **argv) {
       ROS_INFO_STREAM("Pick up complete:" << result);
       // if scuess than place or pick another part
 
-      std::string camera_frame = agv ? "logical_camera_"+std::to_string(CAMERA_OVER_TRAY_TWO)+"_kit_tray_2_frame":"logical_camera_"+std::to_string(CAMERA_OVER_TRAY_ONE)+"_kit_tray_1_frame";
+      std::string camera_frame =
+          agv ? "logical_camera_" + std::to_string(CAMERA_OVER_TRAY_TWO) +
+                    "_kit_tray_2_frame"
+              : "logical_camera_" + std::to_string(CAMERA_OVER_TRAY_ONE) +
+                    "_kit_tray_1_frame";
       if (result) {
         // place
-        result = ur10.robust_place(part.pose,
-                                   camera_frame, agv);
+        result = ur10.robust_place(part.pose, camera_frame, agv);
         // place failed
         if (!result) {
           // check over tray
@@ -87,10 +90,10 @@ int main(int argc, char **argv) {
     // after completing all task send order
     std::string ss = "order_0_kit_" + std::to_string(count);
     ROS_WARN_STREAM(ss);
-    m.send_order("/ariac/agv" + std::to_string(agv+1), ss);
+    m.send_order("/ariac/agv" + std::to_string(agv + 1), ss);
     count++;
     ur10.move(ur10.home_joint_angle_);
-    ros::Duration(20.0).sleep(); // wait for agv to avilable
+    // ros::Duration(20.0).sleep(); // wait for agv to avilable
   }
   m.end_competition();
   return 0;
