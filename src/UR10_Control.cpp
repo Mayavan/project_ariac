@@ -218,8 +218,8 @@ bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
   std::vector<geometry_msgs::Pose> waypoints;
   waypoints.reserve(3);
 
-  // target_.position.z += 0.5;
-  // waypoints.push_back(target_);
+  target_.position.z += 0.2;
+  waypoints.push_back(target_);
 
   target_.position = agv_[agv].position;
   target_.position.y = target.position.y;
