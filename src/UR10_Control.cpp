@@ -228,14 +228,15 @@ bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
   target.position.z += 2 * z_offSet_;
   // TODO(harish) final orientance incorrect (Just yaw fix)
   // orientation convert to rpy and assign yaw and convert back to euler
-  tf::Quaternion q_h(home_.orientation.x, home_.orientation.y, home_.orientation.z, home_.orientation.w);
-  tf::Matrix3x3 m_h(q_h);
-  double r_h, r_t, p_h, p_t, y_h, y_t;
-  m_h.getRPY(r_h, p_h, y_h);
-  tf::Quaternion q_t(target.orientation.x, target.orientation.y, target.orientation.z, target.orientation.w);
-  tf::Matrix3x3 m_t(q_t);
-  m_t.getRPY(r_t, p_t, y_t);
-  tf::Quaternion final;
+  tf::Quaternion q, final;
+  tf::Matrix3x3 m;
+  double r_h, p_h, y_h, y_t;
+  q = {target.orientation.x, target.orientation.y, target.orientation.z, target.orientation.w};
+  m.setRotation(q);
+  m.getRPY(r_h, p_h, y_t);
+  q = {home_.orientation.x, home_.orientation.y, home_.orientation.z, home_.orientation.w};
+  m.setRotation(q);
+  m.getRPY(r_h, p_h, y_h);
   final = tf::createQuaternionFromRPY(r_h, p_h, y_t);
   target.orientation.x = final.getX();
   target.orientation.y = final.getY();
