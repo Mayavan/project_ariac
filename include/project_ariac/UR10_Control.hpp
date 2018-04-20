@@ -66,7 +66,7 @@ public:
   bool move(const geometry_msgs::Pose &target);
   bool move(const std::vector<double> &target_joint);
   bool move(const std::vector<geometry_msgs::Pose> &waypoints,
-            double velocity_factor = 1.0, double eef_step = 0.005,
+            double velocity_factor = 1.0, double eef_step = 0.05,
             double jump_threshold = 0.0);
 
   // geometry_msgs::Pose getTransfrom(const std::string& src,
