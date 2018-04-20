@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     // TODO(ravib)
     // not proper but its work around for competition
     // refactor need
-    // TODO(harish, mayawan) agv choose method
+    int agv = m.pick_agv();
     // Do until every part is placed
     while (!tasks.empty()) {
       auto part = tasks.front();
@@ -60,17 +60,17 @@ int main(int argc, char **argv) {
       if (result) {
         // place
         result = ur10.robust_place(part.pose,
-                                   "logical_camera_4_kit_tray_2_frame", 1);
+                                   "logical_camera_4_kit_tray_2_frame", agv);
         // place failed
         if (!result) {
           // check over tray
           p.pose = m.getPose(part.pose, "logical_camera_4_kit_tray_2_frame");
-          auto v = m.look_over_tray(p.pose, part.type, 1);
+          auto v = m.look_over_tray(p.pose, part.type, agv);
           // if tray has part than pick and place to correct postion
           if (!v.empty()) {
             ROS_INFO_STREAM("Incorrect postion on tray found");
             if (ur10.pickup(v.front()))
-              if (ur10.place(p.pose, 1))
+              if (ur10.place(p.pose, agv))
                 tasks.erase(tasks.begin());
           }
         } else {
