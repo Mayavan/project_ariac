@@ -73,7 +73,7 @@ typedef std::shared_ptr<Agv> AgvPtr;
  * @brief      map < part_type, list of poseStamped>
  */
 typedef std::map<std::string, std::vector<geometry_msgs::PoseStamped>> Database;
-}
+} // namespace manager
 
 /**
  * @brief      Class for manager.
@@ -93,7 +93,7 @@ public:
 
   manager::OrderMsg getTheOrderMsg();
 
-  std::vector<geometry_msgs::Pose>
+  std::vector<geometry_msgs::PoseStamped>
   look_over_tray(const geometry_msgs::Pose &target, const std::string &partType,
                  const int &agv);
   bool isAgvReady(const int &no);
