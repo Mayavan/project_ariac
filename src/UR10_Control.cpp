@@ -218,7 +218,7 @@ bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
   std::vector<geometry_msgs::Pose> waypoints;
   waypoints.reserve(3);
 
-  target_.position.z += 0.2;
+  target_.position.z += 0.1;
   waypoints.push_back(target_);
 
   target_.position = agv_[agv].position;
@@ -231,10 +231,12 @@ bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
   tf::Quaternion q, final;
   tf::Matrix3x3 m;
   double r_h, p_h, y_h, y_t;
-  q = {target.orientation.x, target.orientation.y, target.orientation.z, target.orientation.w};
+  q = {target.orientation.x, target.orientation.y, target.orientation.z,
+       target.orientation.w};
   m.setRotation(q);
   m.getRPY(r_h, p_h, y_t);
-  q = {home_.orientation.x, home_.orientation.y, home_.orientation.z, home_.orientation.w};
+  q = {home_.orientation.x, home_.orientation.y, home_.orientation.z,
+       home_.orientation.w};
   m.setRotation(q);
   m.getRPY(r_h, p_h, y_h);
   final = tf::createQuaternionFromRPY(r_h, p_h, y_t);
