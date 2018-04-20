@@ -153,7 +153,7 @@ void UR10_Control::gripperAction(const bool action) {
     ROS_ERROR("Gripper Action Failed!");
 }
 
-void UR10_Control::gripperStatusCallback(const GripperState &gripper_status) {
+void UR10_Control::gripperStatusCallback(const UR10::GripperState &gripper_status) {
   gripper_state_ = gripper_status;
   if ((pickup_monitor_ && gripper_state_.attached) ||
       (place_monitor_ && !gripper_state_.attached))

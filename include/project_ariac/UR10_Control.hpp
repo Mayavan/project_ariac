@@ -55,10 +55,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "project_ariac/Interface.hpp"
 #include "project_ariac/Sensor.hpp"
 
+namespace UR10
+{
 typedef osrf_gear::VacuumGripperState GripperState;
 typedef std::shared_ptr<planning_scene::PlanningScene> PlanningScenePtr;
+}
 
-class UR10_Control : public Interface {
+class UR10_Control : public Interface
+{
 public:
   explicit UR10_Control(const ros::NodeHandle &server);
   ~UR10_Control();
@@ -86,7 +90,7 @@ public:
                     int agv = 0);
 
 protected:
-  void gripperStatusCallback(const GripperState &gripper_status);
+  void gripperStatusCallback(const UR10::GripperState &gripper_status);
   void initConstraint();
   bool move();
 
@@ -95,7 +99,7 @@ private:
   // geometry_msgs::Pose target_, home_, agv_;
   ros::Subscriber gripper_sensor_;
   ros::ServiceClient gripper_;
-  GripperState gripper_state_;
+  UR10::GripperState gripper_state_;
 
   moveit::planning_interface::MoveGroupInterface ur10_;
   moveit::planning_interface::MoveGroupInterface::Plan planner_;
@@ -106,7 +110,8 @@ private:
   bool pickup_monitor_, place_monitor_;
 };
 
-namespace gripper {
+namespace gripper
+{
 const bool OPEN = false;
 const bool CLOSE = true;
 } // namespace gripper
