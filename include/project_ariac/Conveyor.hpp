@@ -1,8 +1,8 @@
 /**
- * @file Sensor.hpp
+ * @file Conveyor.hpp
  * @author     Ravi Bhadeshiya
  * @version    2.0
- * @brief      Sensor Abstraction
+ * @brief      Conveyor class
  *
  * @copyright  BSD 3-Clause License (c) 2018 Ravi Bhadeshiya
  *
@@ -32,55 +32,36 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #pragma once
+// ROS
+#include <geometry_msgs/Pose.h>
+#include <map>
 #include <memory>
+#include <osrf_gear/LogicalCameraImage.h>
 #include <ros/ros.h>
 #include <string>
+#include <vector>
 
+#include "project_ariac/Interface.hpp"
+#include "project_ariac/Sensor.hpp"
+
+namespace conveyor {
+/**
+ * @brief      map < part_type, list of poseStamped>
+ */
+typedef std::map<std::string, std::vector<geometry_msgs::Pose>> Database;
+typedef osrf_gear::LogicalCameraImage::ConstPtr CameraMsg;
 typedef std::shared_ptr<ros::NodeHandle> NodePtr;
+} // namespace conveyor
 
-template <class T> class Sensor {
+class Conveyor : public Interface, public Sensor<conveyor::CameraMsg> {
 public:
-  Sensor();
-  explicit Sensor(const ros::NodeHandle &nh, const std::string &topic);
-  virtual ~Sensor();
-  virtual T getMessage();
-  virtual void callback(const T &msg);
-  bool isPopulated();
-  std::string getSensorFrame();
+  Conveyor();
+  explicit Conveyor(const ros::NodeHandle &nh);
+  ~Conveyor();
+  void callback(const conveyor::CameraMsg &msg);
 
-protected:
-  ros::Subscriber sensor_subscriber_;
-  NodePtr nh_;
-  T msg_ = NULL;
-  bool populated_;
-  std::string topic_;
+private:
+  ros::Time last_time_, current_time_;
+  conveyor::Database inventory_;
+  double SPEED_ = 0.2;
 };
-
-template <class T> Sensor<T>::Sensor() : populated_(false) {}
-
-template <class T>
-Sensor<T>::Sensor(const ros::NodeHandle &nh, const std::string &topic)
-    : populated_(false), topic_(topic) {
-  nh_ = std::make_shared<ros::NodeHandle>(nh);
-  sensor_subscriber_ = nh_->subscribe(topic, 10, &Sensor<T>::callback, this);
-  ROS_DEBUG_STREAM("Sensor subscribed to " << topic << std::endl);
-}
-
-template <class T> Sensor<T>::~Sensor() { populated_ = false; }
-
-template <class T> T Sensor<T>::getMessage() {
-  ros::spinOnce();
-  ros::Duration(0.1).sleep();
-  return msg_;
-}
-
-template <class T> void Sensor<T>::callback(const T &msg) {
-  msg_ = msg;
-  populated_ = true;
-}
-
-template <class T> bool Sensor<T>::isPopulated() { return populated_; }
-
-template <class T> std::string Sensor<T>::getSensorFrame() {
-  return topic_.substr(topic_.find_last_of('/') + 1) + "_frame";
-}

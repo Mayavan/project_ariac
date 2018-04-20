@@ -39,14 +39,14 @@ Interface::Interface() {
 
 Interface::~Interface() {}
 
-geometry_msgs::Pose Interface::getTransfrom(const std::string& src,
-                                            const std::string& target) {
+geometry_msgs::Pose Interface::getTransfrom(const std::string &src,
+                                            const std::string &target) {
   // auto time = ros::Time(0);
   // buffer_.waitForTransform(src, target, ros::Time(0), ros::Duration(10));
   try {
     transformStamped_ = buffer_.lookupTransform(src, target, ros::Time::now(),
                                                 ros::Duration(10));
-  } catch (tf2::TransformException& ex) {
+  } catch (tf2::TransformException &ex) {
     ROS_ERROR("%s", ex.what());
     ros::Duration(0.5).sleep();
   }
@@ -64,15 +64,14 @@ geometry_msgs::Pose Interface::getTransfrom(const std::string& src,
   return std::move(pose);
 }
 
-geometry_msgs::PoseStamped Interface::getPose(
-    const geometry_msgs::PoseStamped& inPose, std::string ref) {
+geometry_msgs::PoseStamped
+Interface::getPose(const geometry_msgs::PoseStamped &inPose, std::string ref) {
   geometry_msgs::PoseStamped outPose_;
   try {
     transformStamped_ = buffer_.lookupTransform(
-        ref, inPose.header.frame_id, ros::Time::now(), ros::Duration(10));
-
+        ref, inPose.header.frame_id, ros::Time(0), ros::Duration(10));
     tf2::doTransform(inPose, outPose_, transformStamped_);
-  } catch (tf2::TransformException& ex) {
+  } catch (tf2::TransformException &ex) {
     ROS_ERROR("%s", ex.what());
     ros::Duration(0.5).sleep();
   }
@@ -80,12 +79,25 @@ geometry_msgs::PoseStamped Interface::getPose(
   return std::move(outPose_);
 }
 
-geometry_msgs::Pose Interface::getPose(const geometry_msgs::Pose& inPose,
-                            const std::string& frame, std::string ref) {
+geometry_msgs::Pose Interface::getPose(const geometry_msgs::Pose &inPose,
+                                       const std::string &frame,
+                                       std::string ref) {
   geometry_msgs::PoseStamped inPose_;
   inPose_.header.frame_id = frame;
   inPose_.pose = inPose;
 
   geometry_msgs::PoseStamped outPose_ = getPose(inPose_, ref);
   return std::move(outPose_.pose);
+}
+
+bool Interface::is_same(const geometry_msgs::Pose &p1,
+                        const geometry_msgs::Pose &p2) {
+  double dist = std::pow(p1.position.x - p2.position.x, 2) +
+                std::pow(p1.position.y - p2.position.y, 2) +
+                std::pow(p1.position.z - p2.position.z, 2);
+  double angle = std::pow(p1.orientation.x - p2.orientation.x, 2) +
+                 std::pow(p1.orientation.y - p2.orientation.y, 2) +
+                 std::pow(p1.orientation.z - p2.orientation.z, 2) +
+                 std::pow(p1.orientation.w - p2.orientation.w, 2);
+  return dist < std::pow(0.1, 2) && angle < std::pow(0.1, 2);
 }

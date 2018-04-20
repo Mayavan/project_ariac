@@ -77,12 +77,12 @@ typedef std::map<std::string, std::vector<geometry_msgs::PoseStamped>> Database;
  * @brief      Class for manager.
  */
 class Manager : public Interface {
- public:
-  explicit Manager(const ros::NodeHandle& nh);
+public:
+  explicit Manager(const ros::NodeHandle &nh);
   ~Manager();
   void checkInventory();
   Database processedOrder();
-  geometry_msgs::PoseStamped getPart(const std::string& partType);
+  geometry_msgs::PoseStamped getPart(const std::string &partType);
   // ARIAC interface
   void start_competition(std::string topic = "/ariac/start_competition") const;
   void end_competition(std::string topic = "/ariac/end_competition") const;
@@ -91,16 +91,13 @@ class Manager : public Interface {
 
   OrderMsg getTheOrderMsg();
 
-  std::vector<geometry_msgs::Pose> look_over_tray(
-      const geometry_msgs::Pose& target, const std::string& partType,
-      const int& agv);
-
-  bool is_same(const geometry_msgs::Pose& p1, const geometry_msgs::Pose& p2);
-
-  bool isAgvReady(const int& no);
+  std::vector<geometry_msgs::Pose>
+  look_over_tray(const geometry_msgs::Pose &target, const std::string &partType,
+                 const int &agv);
+  bool isAgvReady(const int &no);
   int pick_agv();
 
- private:
+private:
   NodePtr nh_;
   CameraPtr logical_camera_1_, logical_camera_2_, logical_camera_3_,
       logical_camera_4_;
@@ -110,4 +107,3 @@ class Manager : public Interface {
   ArmStatePtr arm_state_;
   Database inventory_;
 };
-

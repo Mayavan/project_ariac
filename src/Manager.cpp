@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "project_ariac/Manager.hpp"
 
-Manager::Manager(const ros::NodeHandle& nh) {
+Manager::Manager(const ros::NodeHandle &nh) {
   nh_ = std::make_shared<ros::NodeHandle>(nh);
   rate_ = std::make_shared<ros::Rate>(0.5);
   // Init Cameras
@@ -72,7 +72,7 @@ void Manager::checkInventory() {
     // add parts from Camera
     image_msg = itr->getMessage();
     frame = itr->getSensorFrame();
-    for (const auto& part : image_msg->models) {
+    for (const auto &part : image_msg->models) {
       geometry_msgs::PoseStamped p_;
       p_.pose = part.pose;
       p_.header.frame_id = frame;
@@ -81,10 +81,11 @@ void Manager::checkInventory() {
   }
 }
 
-geometry_msgs::PoseStamped Manager::getPart(const std::string& partType) {
+geometry_msgs::PoseStamped Manager::getPart(const std::string &partType) {
   // geometry_msgs::PoseStamped part = inventory_[partType].front();
   // assumption inventory has enough part
-  if (inventory_[partType].empty()) checkInventory();
+  if (inventory_[partType].empty())
+    checkInventory();
   auto it = inventory_[partType].begin();
   geometry_msgs::PoseStamped part = *it;
   inventory_[partType].erase(it);
@@ -106,9 +107,9 @@ void Manager::start_competition(std::string topic) const {
     ROS_INFO("Competition is now ready.");
   }
   ROS_INFO("Requesting competition start...");
-  std_srvs::Trigger srv;   // Combination of the "request" and the "response".
-  start_client.call(srv);  // Call the start Service.
-  if (!srv.response.success) {  // If not successful, print out why.
+  std_srvs::Trigger srv;  // Combination of the "request" and the "response".
+  start_client.call(srv); // Call the start Service.
+  if (!srv.response.success) { // If not successful, print out why.
     ROS_ERROR_STREAM(
         "Failed to start the competition: " << srv.response.message);
   } else {
@@ -132,9 +133,9 @@ void Manager::end_competition(std::string topic) const {
     ROS_INFO("Competition is now ready to finish.");
   }
   ROS_INFO("Requesting competition end...");
-  std_srvs::Trigger srv;   // Combination of the "request" and the "response".
-  start_client.call(srv);  // Call the start Service.
-  if (!srv.response.success) {  // If not successful, print out why.
+  std_srvs::Trigger srv;  // Combination of the "request" and the "response".
+  start_client.call(srv); // Call the start Service.
+  if (!srv.response.success) { // If not successful, print out why.
     ROS_ERROR_STREAM("Failed to end the competition: " << srv.response.message);
   } else {
     ROS_INFO("Competition ended!");
@@ -154,11 +155,10 @@ void Manager::send_order(std::string agv, std::string kit_id) const {
     ROS_INFO("AGV client is now ready.");
   }
   ROS_INFO("Requesting AGV to complete order...");
-  osrf_gear::AGVControl
-      srv;  // Combination of the "request" and the "response".
+  osrf_gear::AGVControl srv; // Combination of the "request" and the "response".
   srv.request.kit_type = kit_id;
-  agv_client.call(srv);         // Call the start Service.
-  if (!srv.response.success) {  // If not successful, print out why.
+  agv_client.call(srv); // Call the start Service.
+  if (!srv.response.success) {
     ROS_ERROR_STREAM("Failed to send");
   }
 }
@@ -177,17 +177,9 @@ OrderMsg Manager::getTheOrderMsg() {
   return order_manager_->getMessage();
 }
 
-bool Manager::is_same(const geometry_msgs::Pose& p1,
-                      const geometry_msgs::Pose& p2) {
-  double t = std::pow(p1.position.x - p2.position.x, 2) +
-             std::pow(p1.position.y - p2.position.y, 2) +
-             std::pow(p1.position.z - p2.position.z, 2);
-  return t < std::pow(0.003, 2);
-}
-
-std::vector<geometry_msgs::Pose> Manager::look_over_tray(
-    const geometry_msgs::Pose& target, const std::string& partType,
-    const int& agv) {
+std::vector<geometry_msgs::Pose>
+Manager::look_over_tray(const geometry_msgs::Pose &target,
+                        const std::string &partType, const int &agv) {
   auto camera = agv == 0 ? logical_camera_3_ : logical_camera_4_;
 
   do {
@@ -203,7 +195,7 @@ std::vector<geometry_msgs::Pose> Manager::look_over_tray(
   temp.header.frame_id = camera->getSensorFrame();
   auto msg = camera->getMessage();
   auto frame = camera->getSensorFrame();
-  for (const auto& part : msg->models) {
+  for (const auto &part : msg->models) {
     if (part.type.compare(partType) == 0) {
       temp.pose = part.pose;
       result = getPose(temp);
@@ -216,7 +208,7 @@ std::vector<geometry_msgs::Pose> Manager::look_over_tray(
   return v;
 }
 
-bool Manager::isAgvReady(const int& no) {
+bool Manager::isAgvReady(const int &no) {
   while (!agv_[no]->isPopulated()) {
     ROS_INFO_STREAM("Agv status check....");
     ros::spinOnce();

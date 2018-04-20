@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "project_ariac/UR10_Control.hpp"
 
-UR10_Control::UR10_Control(const ros::NodeHandle& server)
+UR10_Control::UR10_Control(const ros::NodeHandle &server)
     : ur10_("manipulator"), pickup_monitor_(false), place_monitor_(false) {
   // init the move group interface
   // Set the planning param
@@ -64,7 +64,7 @@ UR10_Control::UR10_Control(const ros::NodeHandle& server)
   ur10_.setMaxVelocityScalingFactor(0.5);
 
   // ur10_.setEndEffector("vacuum_gripper_link");
-  move(home_joint_angle_);  // Home condition
+  move(home_joint_angle_); // Home condition
   ros::Duration(0.5).sleep();
   // Find pose of home position
   home_ = this->getTransfrom(base_link, end_link);
@@ -107,17 +107,17 @@ bool UR10_Control::move() {
   return success;
 }
 
-bool UR10_Control::move(const geometry_msgs::Pose& target) {
+bool UR10_Control::move(const geometry_msgs::Pose &target) {
   ur10_.setPoseTarget(target);
   return move();
 }
 
-bool UR10_Control::move(const std::vector<double>& target_joint) {
+bool UR10_Control::move(const std::vector<double> &target_joint) {
   ur10_.setJointValueTarget(target_joint);
   return move();
 }
 
-bool UR10_Control::move(const std::vector<geometry_msgs::Pose>& waypoints,
+bool UR10_Control::move(const std::vector<geometry_msgs::Pose> &waypoints,
                         double velocity_factor, double eef_step,
                         double jump_threshold) {
   // ros::AsyncSpinner spinner(1);
@@ -153,14 +153,14 @@ void UR10_Control::gripperAction(const bool action) {
     ROS_ERROR("Gripper Action Failed!");
 }
 
-void UR10_Control::gripperStatusCallback(const GripperState& gripper_status) {
+void UR10_Control::gripperStatusCallback(const GripperState &gripper_status) {
   gripper_state_ = gripper_status;
   if ((pickup_monitor_ && gripper_state_.attached) ||
       (place_monitor_ && !gripper_state_.attached))
     ur10_.stop();
 }
 
-bool UR10_Control::pickup(const geometry_msgs::Pose& target) {
+bool UR10_Control::pickup(const geometry_msgs::Pose &target) {
   ros::AsyncSpinner spinner(1);
   spinner.start();
   // Lock the orientation
@@ -178,11 +178,11 @@ bool UR10_Control::pickup(const geometry_msgs::Pose& target) {
   gripperAction(gripper::CLOSE);
   // should stop after part is being picked
   pickup_monitor_ = true;
-  if (!move(waypoints, 1.0, 0.001)) return false;
+  if (!move(waypoints, 1.0, 0.001))
+    return false;
   // move({target_}, 0.1, 0.001);  // Grasp move
   ros::Duration(1.0).sleep();
   pickup_monitor_ = false;
-
   target_.position.z += 0.5;
   move({target_});
   // should attach after execution
@@ -193,7 +193,7 @@ bool UR10_Control::pickup(const geometry_msgs::Pose& target) {
   // return res.result;i
 }
 
-bool UR10_Control::robust_pickup(const geometry_msgs::PoseStamped& pose,
+bool UR10_Control::robust_pickup(const geometry_msgs::PoseStamped &pose,
                                  int max_try) {
   bool result;
   // hover below camera
@@ -226,6 +226,8 @@ bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
   waypoints.push_back(target_);
 
   target.position.z += 2 * z_offSet_;
+  // TODO(harish) final orientance incorrect (Just yaw fix)
+  // orientation convert to rpy and assign yaw and convert back to euler
   target.orientation = home_.orientation;
   waypoints.push_back(target);
 
@@ -234,7 +236,7 @@ bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
   return place(waypoints);
 }
 
-bool UR10_Control::place(const std::vector<geometry_msgs::Pose>& targets) {
+bool UR10_Control::place(const std::vector<geometry_msgs::Pose> &targets) {
   ros::AsyncSpinner spinner(1);
   spinner.start();
   // it will stop the motion,
@@ -244,6 +246,7 @@ bool UR10_Control::place(const std::vector<geometry_msgs::Pose>& targets) {
   place_monitor_ = false;
   // should attach before openning
   // robot didn't drop part
+
   ros::spinOnce();
   bool result = gripper_state_.attached;
   gripperAction(gripper::OPEN);
@@ -256,8 +259,8 @@ bool UR10_Control::place(const std::vector<geometry_msgs::Pose>& targets) {
   return result;
 }
 
-bool UR10_Control::robust_place(const geometry_msgs::Pose& target,
-                                const std::string& ref, int agv) {
+bool UR10_Control::robust_place(const geometry_msgs::Pose &target,
+                                const std::string &ref, int agv) {
   bool result;
 
   auto target_place = getPose(target, ref);
@@ -284,7 +287,7 @@ void UR10_Control::initConstraint() {
                  "wrist_3_joint"};
 
   size_t count = 0;
-  for (const auto& joint : joints) {
+  for (const auto &joint : joints) {
     jcm.joint_name = joint;
     jcm.position = home_joint_angle_[count];
     jcm.tolerance_above = 1.0;

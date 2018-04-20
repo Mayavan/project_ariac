@@ -1,8 +1,8 @@
 /**
- * @file Sensor.hpp
+ * @file Conveyor.cpp
  * @author     Ravi Bhadeshiya
  * @version    2.0
- * @brief      Sensor Abstraction
+ * @brief      Class for Conveyor
  *
  * @copyright  BSD 3-Clause License (c) 2018 Ravi Bhadeshiya
  *
@@ -31,56 +31,51 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#pragma once
-#include <memory>
-#include <ros/ros.h>
-#include <string>
+#include "project_ariac/Conveyor.hpp"
 
-typedef std::shared_ptr<ros::NodeHandle> NodePtr;
+Conveyor::Conveyor() {}
 
-template <class T> class Sensor {
-public:
-  Sensor();
-  explicit Sensor(const ros::NodeHandle &nh, const std::string &topic);
-  virtual ~Sensor();
-  virtual T getMessage();
-  virtual void callback(const T &msg);
-  bool isPopulated();
-  std::string getSensorFrame();
-
-protected:
-  ros::Subscriber sensor_subscriber_;
-  NodePtr nh_;
-  T msg_ = NULL;
-  bool populated_;
-  std::string topic_;
-};
-
-template <class T> Sensor<T>::Sensor() : populated_(false) {}
-
-template <class T>
-Sensor<T>::Sensor(const ros::NodeHandle &nh, const std::string &topic)
-    : populated_(false), topic_(topic) {
+Conveyor::Conveyor(const ros::NodeHandle &nh) {
   nh_ = std::make_shared<ros::NodeHandle>(nh);
-  sensor_subscriber_ = nh_->subscribe(topic, 10, &Sensor<T>::callback, this);
-  ROS_DEBUG_STREAM("Sensor subscribed to " << topic << std::endl);
+  sensor_subscriber_ =
+      nh_->subscribe("/ariac/logical_camera_1", 10, &Conveyor::callback, this);
+  last_time_ = ros::Time::now();
 }
 
-template <class T> Sensor<T>::~Sensor() { populated_ = false; }
+Conveyor::~Conveyor() {}
 
-template <class T> T Sensor<T>::getMessage() {
-  ros::spinOnce();
-  ros::Duration(0.1).sleep();
-  return msg_;
-}
+void Conveyor::callback(const conveyor::CameraMsg &msg) {
+  current_time_ = ros::Time::now();
+  double dt = current_time_.toSec() - last_time_.toSec();
 
-template <class T> void Sensor<T>::callback(const T &msg) {
-  msg_ = msg;
+  for (auto &part_list : inventory_) {
+    ROS_INFO_STREAM(part_list.first << ":" << part_list.second.size());
+    for (auto part = part_list.second.begin(); part != part_list.second.end();
+         ++part) {
+      // update the part postion in inventory
+      // conveyor only move in one direction(-ve y axis)
+      part->position.y -= SPEED_ * dt;
+      if (part->position.y < -3.0)
+        part_list.second.erase(part);
+    }
+  }
+
+  for (const auto &part_in_view : msg->models) {
+    auto P = getPose(part_in_view.pose, "logical_camera_1_frame");
+    auto itr = inventory_.find(part_in_view.type);
+    bool found = false;
+    if (itr != inventory_.end()) {
+      for (const auto &part : itr->second) {
+        if (is_same(P, part)) {
+          found = true;
+          break;
+        }
+      }
+    }
+    if (!found) {
+      inventory_[part_in_view.type].emplace_back(P);
+    }
+  }
   populated_ = true;
-}
-
-template <class T> bool Sensor<T>::isPopulated() { return populated_; }
-
-template <class T> std::string Sensor<T>::getSensorFrame() {
-  return topic_.substr(topic_.find_last_of('/') + 1) + "_frame";
+  last_time_ = current_time_;
 }

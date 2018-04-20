@@ -7,10 +7,10 @@
  *
  * @copyright  BSD 3-Clause License (c) 2018 Ravi Bhadeshiya
  **/
-#include <ros/ros.h>
-#include <sstream>
 #include "project_ariac/Manager.hpp"
 #include "project_ariac/UR10_Control.hpp"
+#include <ros/ros.h>
+#include <sstream>
 /**
  * @TODO(ravib)
  * pick up moving part
@@ -20,7 +20,7 @@
  * doxygen doc comment
  */
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   ros::init(argc, argv, "project_ariac_node");
 
   ros::NodeHandle node;
@@ -42,19 +42,19 @@ int main(int argc, char** argv) {
   // take order
   auto ariac_order = m.getTheOrderMsg();
   // wait for order
-  for (const auto& kit : ariac_order->kits) {
+  for (const auto &kit : ariac_order->kits) {
     auto tasks = kit.objects;
     // TODO(ravib)
     // not proper but its work around for competition
     // refactor need
-
+    // TODO(harish, mayawan) agv choose method
     // Do until every part is placed
     while (!tasks.empty()) {
       auto part = tasks.front();
       ROS_INFO_STREAM("Pickup :" << part.type);
       auto p = m.getPart(part.type);
       // pick up part
-      result = ur10.robust_pickup(p, 1);  // max_try = 1
+      result = ur10.robust_pickup(p, 1); // max_try = 1
       ROS_INFO_STREAM("Pick up complete:" << result);
       // if scuess than place or pick another part
       if (result) {
@@ -70,11 +70,12 @@ int main(int argc, char** argv) {
           if (!v.empty()) {
             ROS_INFO_STREAM("Incorrect postion on tray found");
             if (ur10.pickup(v.front()))
-              if (ur10.place(p.pose, 1)) tasks.erase(tasks.begin());
+              if (ur10.place(p.pose, 1))
+                tasks.erase(tasks.begin());
           }
         } else {
           tasks.erase(
-              tasks.begin());  // part place sucess thn remove from tasks list
+              tasks.begin()); // part place sucess thn remove from tasks list
         }
       }
     }
@@ -84,9 +85,8 @@ int main(int argc, char** argv) {
     m.send_order("/ariac/agv2", ss);
     count++;
     ur10.move(ur10.home_joint_angle_);
-    ros::Duration(20.0).sleep();  // wait for agv to avilable
+    ros::Duration(20.0).sleep(); // wait for agv to avilable
   }
-
   m.end_competition();
   return 0;
 }

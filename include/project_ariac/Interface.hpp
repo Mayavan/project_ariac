@@ -35,26 +35,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ROS interface
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <memory>
 #include <ros/ros.h>
+#include <string>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
-#include <memory>
-#include <string>
 
 class Interface {
- public:
+public:
   Interface();
   ~Interface();
-  geometry_msgs::Pose getTransfrom(const std::string& src,
-                                   const std::string& target);
-  geometry_msgs::PoseStamped getPose(const geometry_msgs::PoseStamped& inPose,
+  geometry_msgs::Pose getTransfrom(const std::string &src,
+                                   const std::string &target);
+  geometry_msgs::PoseStamped getPose(const geometry_msgs::PoseStamped &inPose,
                                      std::string ref = "world");
-  geometry_msgs::Pose getPose(const geometry_msgs::Pose& inPose,
-                              const std::string& frame,
+  geometry_msgs::Pose getPose(const geometry_msgs::Pose &inPose,
+                              const std::string &frame,
                               std::string ref = "world");
+  bool is_same(const geometry_msgs::Pose &p1, const geometry_msgs::Pose &p2);
 
- protected:
+protected:
   tf2_ros::Buffer buffer_;
   std::shared_ptr<tf2_ros::TransformListener> listener_ptr_;
   geometry_msgs::TransformStamped transformStamped_;
