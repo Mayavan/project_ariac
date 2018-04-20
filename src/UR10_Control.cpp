@@ -226,7 +226,7 @@ bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
   waypoints.push_back(target_);
 
   target.position.z += 2 * z_offSet_;
-  // TODO(harish) final orientance incorrect (Just yaw fix)
+
   // orientation convert to rpy and assign yaw and convert back to euler
   tf::Quaternion q, final;
   tf::Matrix3x3 m;
