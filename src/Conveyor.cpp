@@ -35,10 +35,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Conveyor::Conveyor() {}
 
-Conveyor::Conveyor(const ros::NodeHandle &nh) {
+Conveyor::Conveyor(const ros::NodeHandle &nh)
+ {
   nh_ = std::make_shared<ros::NodeHandle>(nh);
   sensor_subscriber_ =
       nh_->subscribe("/ariac/logical_camera_1", 10, &Conveyor::callback, this);
+  pub_part = nh_->advertise<osrf_gear::LogicalCameraImage>("project_ariac/conveyer",10);
   last_time_ = ros::Time::now();
 }
 
@@ -47,6 +49,8 @@ Conveyor::~Conveyor() {}
 void Conveyor::callback(const conveyor::CameraMsg &msg) {
   current_time_ = ros::Time::now();
   double dt = current_time_.toSec() - last_time_.toSec();
+  osrf_gear::LogicalCameraImage parts_on_conv ;
+  osrf_gear::Model model;
 
   for (auto &part_list : inventory_) {
     ROS_INFO_STREAM(part_list.first << ":" << part_list.second.size());
@@ -55,8 +59,14 @@ void Conveyor::callback(const conveyor::CameraMsg &msg) {
       // update the part postion in inventory
       // conveyor only move in one direction(-ve y axis)
       part->position.y -= SPEED_ * dt;
-      if (part->position.y < -3.0)
+      model.type = part_list.first;
+      model.pose = *part;
+	
+      if (part->position.y < -3.0) {
         part_list.second.erase(part);
+       } else {
+       parts_on_conv.models.emplace_back(model);
+	   }
     }
   }
 
@@ -74,8 +84,14 @@ void Conveyor::callback(const conveyor::CameraMsg &msg) {
     }
     if (!found) {
       inventory_[part_in_view.type].emplace_back(P);
-    }
+      model.type = part_in_view.type;
+      model.pose = P;
+      parts_on_conv.models.emplace_back(model);
   }
+  
+  }
+  //conveyor::CameraMsg partMsg = *msg; 
+  pub_part.publish(parts_on_conv);
   populated_ = true;
   last_time_ = current_time_;
 }

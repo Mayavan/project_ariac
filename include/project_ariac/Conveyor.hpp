@@ -61,6 +61,7 @@ public:
   void callback(const conveyor::CameraMsg &msg);
 
 private:
+  ros::Publisher pub_part;
   ros::Time last_time_, current_time_;
   conveyor::Database inventory_;
   double SPEED_ = 0.2;
