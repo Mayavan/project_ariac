@@ -52,6 +52,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "project_ariac/Interface.hpp"
 #include "project_ariac/Sensor.hpp"
 
+namespace manager {
 // Custom types
 typedef osrf_gear::LogicalCameraImage::ConstPtr CameraMsg;
 typedef sensor_msgs::JointState::ConstPtr JointMsg;
@@ -72,6 +73,7 @@ typedef std::shared_ptr<Agv> AgvPtr;
  * @brief      map < part_type, list of poseStamped>
  */
 typedef std::map<std::string, std::vector<geometry_msgs::PoseStamped>> Database;
+}
 
 /**
  * @brief      Class for manager.
@@ -81,7 +83,7 @@ public:
   explicit Manager(const ros::NodeHandle &nh);
   ~Manager();
   void checkInventory();
-  Database processedOrder();
+  manager::Database processedOrder();
   geometry_msgs::PoseStamped getPart(const std::string &partType);
   // ARIAC interface
   void start_competition(std::string topic = "/ariac/start_competition") const;
@@ -89,7 +91,7 @@ public:
   void send_order(std::string agv = "/ariac/agv1",
                   std::string kit_id = "order_0_kit_0") const;
 
-  OrderMsg getTheOrderMsg();
+  manager::OrderMsg getTheOrderMsg();
 
   std::vector<geometry_msgs::Pose>
   look_over_tray(const geometry_msgs::Pose &target, const std::string &partType,
@@ -99,11 +101,11 @@ public:
 
 private:
   NodePtr nh_;
-  CameraPtr logical_camera_1_, logical_camera_2_, logical_camera_3_,
+  manager::CameraPtr logical_camera_1_, logical_camera_2_, logical_camera_3_,
       logical_camera_4_;
-  AgvPtr agv_[2];
-  OrderPtr order_manager_;
-  RatePtr rate_;
-  ArmStatePtr arm_state_;
-  Database inventory_;
+  manager::AgvPtr agv_[2];
+  manager::OrderPtr order_manager_;
+  manager::RatePtr rate_;
+  manager::ArmStatePtr arm_state_;
+  manager::Database inventory_;
 };

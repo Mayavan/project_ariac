@@ -38,17 +38,17 @@ Manager::Manager(const ros::NodeHandle &nh) {
   nh_ = std::make_shared<ros::NodeHandle>(nh);
   rate_ = std::make_shared<ros::Rate>(0.5);
   // Init Cameras
-  logical_camera_1_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_1");
-  logical_camera_2_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_2");
-  logical_camera_3_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_3");
-  logical_camera_4_ = std::make_shared<Camera>(nh, "/ariac/logical_camera_4");
+  logical_camera_1_ = std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_1");
+  logical_camera_2_ = std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_2");
+  logical_camera_3_ = std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_3");
+  logical_camera_4_ = std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_4");
 
-  agv_[0] = std::make_shared<Agv>(nh, "/ariac/agv1/state");
-  agv_[1] = std::make_shared<Agv>(nh, "/ariac/agv2/state");
+  agv_[0] = std::make_shared<manager::Agv>(nh, "/ariac/agv1/state");
+  agv_[1] = std::make_shared<manager::Agv>(nh, "/ariac/agv2/state");
 
-  arm_state_ = std::make_shared<ArmState>(nh, "/ariac/joint_states");
+  arm_state_ = std::make_shared<manager::ArmState>(nh, "/ariac/joint_states");
   // Init order manager
-  order_manager_ = std::make_shared<Order>(nh, "/ariac/orders");
+  order_manager_ = std::make_shared<manager::Order>(nh, "/ariac/orders");
   ROS_DEBUG_STREAM("Manager is init..");
 }
 
@@ -66,7 +66,7 @@ void Manager::checkInventory() {
   // reset inventory for update
   inventory_.clear();
   std::string frame;
-  CameraMsg image_msg;
+  manager::CameraMsg image_msg;
 
   for (auto itr : {logical_camera_1_, logical_camera_2_}) {
     // add parts from Camera
@@ -167,7 +167,7 @@ void Manager::send_order(std::string agv, std::string kit_id) const {
 //   return;
 // }
 
-OrderMsg Manager::getTheOrderMsg() {
+manager::OrderMsg Manager::getTheOrderMsg() {
   while (!order_manager_->isPopulated()) {
     ROS_WARN_STREAM("Waiting for order");
     ros::spinOnce();
@@ -225,7 +225,7 @@ int Manager::pick_agv() {
     ros::spinOnce();
     ROS_WARN_STREAM("Both Agvs are busy!!");
     rate_->sleep();
-  } while (!isAgvReady(0) || !isAgvReady(1));
+  } while (!isAgvReady(0) && !isAgvReady(1));
 
   return isAgvReady(1) ? 1 : 0;
 }
