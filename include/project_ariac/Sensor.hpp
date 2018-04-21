@@ -46,6 +46,7 @@ public:
   virtual T getMessage();
   virtual void callback(const T &msg);
   bool isPopulated();
+  size_t getCounter();
   std::string getSensorFrame();
 
 protected:
@@ -80,6 +81,8 @@ template <class T> void Sensor<T>::callback(const T &msg) {
 }
 
 template <class T> bool Sensor<T>::isPopulated() { return (counter > 0); }
+
+template <class T> size_t Sensor<T>::getCounter() { return counter; }
 
 template <class T> std::string Sensor<T>::getSensorFrame() {
   return topic_.substr(topic_.find_last_of('/') + 1) + "_frame";

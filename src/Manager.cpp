@@ -178,7 +178,7 @@ manager::OrderMsg Manager::getTheOrderMsg() {
 }
 
 bool Manager::isHighOrder() {
-  return order_manager_->isPopulated();
+  return (order_manager_->getCounter() > 1);
 }
 
 std::vector<geometry_msgs::PoseStamped>
