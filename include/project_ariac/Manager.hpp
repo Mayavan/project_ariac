@@ -92,7 +92,7 @@ public:
                   std::string kit_id = "order_0_kit_0") const;
 
   manager::OrderMsg getTheOrderMsg();
-
+  bool isHighOrder();
   std::vector<geometry_msgs::PoseStamped>
   look_over_tray(const geometry_msgs::Pose &target, const std::string &partType,
                  const int &agv);

@@ -92,6 +92,6 @@ void Conveyor::callback(const conveyor::CameraMsg &msg) {
   }
   //conveyor::CameraMsg partMsg = *msg; 
   pub_part.publish(parts_on_conv);
-  populated_ = true;
+  counter += 1;
   last_time_ = current_time_;
 }
