@@ -46,27 +46,28 @@ public:
   virtual T getMessage();
   virtual void callback(const T &msg);
   bool isPopulated();
+  size_t getCounter();
   std::string getSensorFrame();
 
 protected:
   ros::Subscriber sensor_subscriber_;
   NodePtr nh_;
   T msg_ = NULL;
-  bool populated_;
   std::string topic_;
+  size_t counter;
 };
 
-template <class T> Sensor<T>::Sensor() : populated_(false) {}
+template <class T> Sensor<T>::Sensor() : counter(0) {}
 
 template <class T>
 Sensor<T>::Sensor(const ros::NodeHandle &nh, const std::string &topic)
-    : populated_(false), topic_(topic) {
+    : counter(0), topic_(topic) {
   nh_ = std::make_shared<ros::NodeHandle>(nh);
   sensor_subscriber_ = nh_->subscribe(topic, 10, &Sensor<T>::callback, this);
   ROS_DEBUG_STREAM("Sensor subscribed to " << topic << std::endl);
 }
 
-template <class T> Sensor<T>::~Sensor() { populated_ = false; }
+template <class T> Sensor<T>::~Sensor() { counter = 0; }
 
 template <class T> T Sensor<T>::getMessage() {
   ros::spinOnce();
@@ -76,10 +77,12 @@ template <class T> T Sensor<T>::getMessage() {
 
 template <class T> void Sensor<T>::callback(const T &msg) {
   msg_ = msg;
-  populated_ = true;
+  counter += 1;
 }
 
-template <class T> bool Sensor<T>::isPopulated() { return populated_; }
+template <class T> bool Sensor<T>::isPopulated() { return (counter > 0); }
+
+template <class T> size_t Sensor<T>::getCounter() { return counter; }
 
 template <class T> std::string Sensor<T>::getSensorFrame() {
   return topic_.substr(topic_.find_last_of('/') + 1) + "_frame";

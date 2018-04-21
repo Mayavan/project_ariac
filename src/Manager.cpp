@@ -181,6 +181,10 @@ manager::OrderMsg Manager::getTheOrderMsg() {
   return order_manager_->getMessage();
 }
 
+bool Manager::isHighOrder() {
+  return (order_manager_->getCounter() > 1);
+}
+
 std::vector<geometry_msgs::PoseStamped>
 Manager::look_over_tray(const geometry_msgs::Pose &target,
                         const std::string &partType, const int &agv) {
