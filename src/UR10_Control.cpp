@@ -153,7 +153,8 @@ void UR10_Control::gripperAction(const bool action) {
     ROS_ERROR("Gripper Action Failed!");
 }
 
-void UR10_Control::gripperStatusCallback(const UR10::GripperState &gripper_status) {
+void UR10_Control::gripperStatusCallback(
+    const UR10::GripperState &gripper_status) {
   gripper_state_ = gripper_status;
   if ((pickup_monitor_ && gripper_state_.attached) ||
       (place_monitor_ && !gripper_state_.attached))
@@ -257,7 +258,7 @@ bool UR10_Control::place(const std::vector<geometry_msgs::Pose> &targets) {
   // it will stop the motion,
   // if robot drop part
   place_monitor_ = true;
-  move(targets, 0.5, 0.001);
+  move(targets, 0.5, 0.005);
   place_monitor_ = false;
   // should attach before openning
   // robot didn't drop part

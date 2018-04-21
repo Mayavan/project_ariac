@@ -38,10 +38,14 @@ Manager::Manager(const ros::NodeHandle &nh) {
   nh_ = std::make_shared<ros::NodeHandle>(nh);
   rate_ = std::make_shared<ros::Rate>(0.5);
   // Init Cameras
-  logical_camera_1_ = std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_1");
-  logical_camera_2_ = std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_2");
-  logical_camera_3_ = std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_3");
-  logical_camera_4_ = std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_4");
+  logical_camera_1_ =
+      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_1");
+  logical_camera_2_ =
+      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_2");
+  logical_camera_3_ =
+      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_3");
+  logical_camera_4_ =
+      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_4");
 
   agv_[0] = std::make_shared<manager::Agv>(nh, "/ariac/agv1/state");
   agv_[1] = std::make_shared<manager::Agv>(nh, "/ariac/agv2/state");
@@ -220,7 +224,10 @@ bool Manager::isAgvReady(const int &no) {
 
 int Manager::pick_agv() {
   ROS_INFO_STREAM("Checking agvs state.");
-
+  if (isAgvReady(1))
+    return 1;
+  if (isAgvReady(0))
+    return 0;
   do {
     ros::spinOnce();
     ROS_WARN_STREAM("Both Agvs are busy!!");
