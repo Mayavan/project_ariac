@@ -182,7 +182,11 @@ manager::OrderMsg Manager::getTheOrderMsg() {
 }
 
 bool Manager::isHighOrder() {
-  return (order_manager_->getCounter() > 1);
+  if(order_manager_->getCounter() > 1) {
+    order_manager_->setCounter();
+    return true;
+  }
+  return false;  
 }
 
 std::vector<geometry_msgs::PoseStamped>
