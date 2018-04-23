@@ -162,8 +162,6 @@ void UR10_Control::gripperStatusCallback(
 }
 
 bool UR10_Control::pickup(const geometry_msgs::Pose &target) {
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
   // Lock the orientation
 
   std::vector<geometry_msgs::Pose> waypoints;
@@ -179,13 +177,18 @@ bool UR10_Control::pickup(const geometry_msgs::Pose &target) {
   gripperAction(gripper::CLOSE);
   // should stop after part is being picked
   pickup_monitor_ = true;
-  if (!move(waypoints, 1.0, 0.001))
+
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+  if (!move(waypoints, 1.0, 0.005))
     return false;
+
   // move({target_}, 0.1, 0.001);  // Grasp move
   ros::Duration(1.0).sleep();
   pickup_monitor_ = false;
   target_.position.z += 0.5;
-  move({target_});
+  if (!move({target_}))
+    return false;
   // should attach after execution
   // it means, robot pick up part
   ros::spinOnce();
@@ -195,13 +198,20 @@ bool UR10_Control::pickup(const geometry_msgs::Pose &target) {
 }
 
 bool UR10_Control::robust_pickup(const geometry_msgs::PoseStamped &pose,
-                                 int max_try) {
+                                 int max_try, std::string partType) {
   bool result;
   // hover below camera
   // auto t = getTransfrom("world", "bin_6_frame");
   // t.orientation = home_.orientation;
   // t.position.z = 0.2;
   // move({t});
+  if (partType == "gear_part" || partType == "piston_rod_part") {
+    z_offSet_ = 0.02;
+  } else if (partType == "disk_part") {
+    z_offSet_ = 0.035;
+  } else {
+    z_offSet_ = 0.038;
+  }
   do {
     // PoseStamped had header and getPose will give pose with world
     ROS_INFO_STREAM("Pick up try:" << max_try);
@@ -218,9 +228,8 @@ bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
   // initConstraint();
   std::vector<geometry_msgs::Pose> waypoints;
   waypoints.reserve(3);
-
-  target_.position.z += 0.1;
-  waypoints.push_back(target_);
+  // target_.position.z += 0.1;
+  // waypoints.push_back(target_);
 
   target_.position = agv_[agv].position;
   target_.position.y = target.position.y;
@@ -245,6 +254,7 @@ bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
   target.orientation.y = final.getY();
   target.orientation.z = final.getZ();
   target.orientation.w = final.getW();
+
   waypoints.push_back(target);
 
   // it will stop the motion,
@@ -258,7 +268,8 @@ bool UR10_Control::place(const std::vector<geometry_msgs::Pose> &targets) {
   // it will stop the motion,
   // if robot drop part
   place_monitor_ = true;
-  move(targets, 0.5, 0.005);
+  if (!move(targets, 1.0, 0.005))
+    return false;
   place_monitor_ = false;
   // should attach before openning
   // robot didn't drop part
@@ -281,6 +292,15 @@ bool UR10_Control::robust_place(const geometry_msgs::Pose &target,
 
   auto target_place = getPose(target, ref);
 
+  auto target_agv = home_joint_angle_;
+  if (agv == 0) {
+    target_agv[1] = 1.55;
+    move(target_agv);
+  } else {
+    target_agv[1] = -1.55;
+    move(target_agv);
+  }
+
   result = place(target_place, agv);
 
   if (!result) {
@@ -288,7 +308,7 @@ bool UR10_Control::robust_place(const geometry_msgs::Pose &target,
     //   robust_pickup("find the part");
     //   place(target_place, agv);
   } else {
-    // move(home_joint_angle_);
+    move(home_joint_angle_);
   }
 
   return result;

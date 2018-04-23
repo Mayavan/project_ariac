@@ -20,8 +20,8 @@
  * doxygen doc comment
  */
 
-#define CAMERA_OVER_TRAY_ONE 3
-#define CAMERA_OVER_TRAY_TWO 4
+#define CAMERA_OVER_TRAY_ONE 1
+#define CAMERA_OVER_TRAY_TWO 2
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "project_ariac_node");
@@ -50,16 +50,17 @@ int main(int argc, char **argv) {
   priority_order = false;
   while (!ariac_order.empty()) {
     auto kits = ariac_order.back()->kits;
+    ur10.move(ur10.home_joint_angle_);
     while (!kits.empty()) {
       // TODO(ravib)
       // not proper but its work around for competition
-      // refactor needo 
-      auto& tasks = kits.front().objects;
+      // refactor needo
+      auto &tasks = kits.front().objects;
       // int agv = m.pick_agv();
-      if(!priority_order && !pending_task.empty()) {
-         tasks = pending_task;
+      if (!priority_order && !pending_task.empty()) {
+        tasks = pending_task;
       }
-      int agv = priority_order ? 0 : 1;
+      int agv = priority_order ? 1 : 0;
       priority_order = false;
       // Do until every part is placed
       while (!tasks.empty()) {
@@ -67,7 +68,7 @@ int main(int argc, char **argv) {
         ROS_INFO_STREAM("Pickup :" << part.type);
         auto p = m.getPart(part.type);
         // pick up part
-        result = ur10.robust_pickup(p, 1); // max_try = 1
+        result = ur10.robust_pickup(p, 1, part.type); // max_try = 1
         ROS_INFO_STREAM("Pick up complete:" << result);
         // if success than place or pick another part
 
@@ -87,7 +88,7 @@ int main(int argc, char **argv) {
             // if tray has part than pick and place to correct postion
             if (!v.empty()) {
               ROS_INFO_STREAM("Incorrect postion on tray found");
-              if (ur10.robust_pickup(v.front(), 1))
+              if (ur10.robust_pickup(v.front(), 1, part.type))
                 if (ur10.place(p.pose, agv))
                   tasks.erase(tasks.begin());
             }
@@ -97,19 +98,19 @@ int main(int argc, char **argv) {
           }
         }
         if (m.isHighOrder()) {
-          priority_order = true;// complete the high priority order with agv0;
+          priority_order = true; // complete the high priority order with agv0;
           ariac_order.push_back(m.getTheOrderMsg());
           pending_task = tasks;
           break;
         }
       }
-      if (priority_order) break;
+      if (priority_order)
+        break;
       // after completing all task send kit
       m.send_order("/ariac/agv" + std::to_string(agv + 1),
                    kits.front().kit_type);
       kits.erase(kits.begin());
-      ur10.move(ur10.home_joint_angle_);
-      ros::Duration(20.0).sleep(); // wait for agv to avilable
+      // ros::Duration(20.0).sleep(); // wait for agv to avilable
     }
     if (!priority_order) {
       ariac_order.pop_back();
