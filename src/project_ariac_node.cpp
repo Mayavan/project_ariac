@@ -12,7 +12,7 @@
 #include <ros/ros.h>
 #include <vector>
 /**
- * @TODO(ravib)
+ * TODO(ravib)
  * pick up moving part
  * choose agv method for multitasking
  * refactor high level logic
@@ -20,8 +20,8 @@
  * doxygen doc comment
  */
 
-#define CAMERA_OVER_TRAY_ONE 3
-#define CAMERA_OVER_TRAY_TWO 4
+#define CAMERA_OVER_TRAY_ONE 1
+#define CAMERA_OVER_TRAY_TWO 2
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "project_ariac_node");
@@ -29,14 +29,15 @@ int main(int argc, char **argv) {
   ros::NodeHandle node;
   ros::NodeHandle private_node_handle("~");
 
-  bool run, result;
-  // private_node_handle.param("run", run, false);
+  bool result, run;
+  private_node_handle.param("run", run, false);
   UR10_Control ur10(private_node_handle);
 
   geometry_msgs::Pose target_pick, target_place;
   tf::StampedTransform transform;
 
   Manager m(node);
+
   // start
   m.start_competition();
   // update inventory
@@ -44,24 +45,38 @@ int main(int argc, char **argv) {
   // take order
   std::vector<manager::OrderMsg> ariac_order = {m.getTheOrderMsg()};
   // wait for order
-  // for (const auto &kit : ariac_order->kits) {
-  //   auto tasks = kit.objects;
   while (!ariac_order.empty()) {
+
+    // BUG modifing local copy bug
     auto kits = ariac_order.back()->kits;
+
     while (!kits.empty()) {
       // TODO(ravib)
       // not proper but its work around for competition
-      // refactor needo
+      // refactor need
       auto tasks = kits.front().objects;
       // int agv = m.pick_agv();
       int agv = 1;
       // Do until every part is placed
       while (!tasks.empty()) {
         auto part = tasks.front();
-        ROS_INFO_STREAM("Pickup :" << part.type);
-        auto p = m.getPart(part.type);
+
+        geometry_msgs::PoseStamped p;
+
+        do {
+          ROS_INFO_STREAM("Finding :" << part.type);
+          p = m.getPart(part.type);
+        } while (p.header.frame_id == "invalid");
         // pick up part
-        result = ur10.robust_pickup(p, 1); // max_try = 1
+
+        ROS_INFO_STREAM("Pickup :" << part.type);
+        // is it over conveyor?
+        if (p.header.frame_id == "world") {
+          result = ur10.conveyor_pickup(p.pose);
+        } else {
+          result = ur10.robust_pickup(p, 1); // max_try = 1
+        }
+
         ROS_INFO_STREAM("Pick up complete:" << result);
         // if scuess than place or pick another part
 

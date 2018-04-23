@@ -47,6 +47,8 @@ Manager::Manager(const ros::NodeHandle &nh) {
   logical_camera_4_ =
       std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_4");
 
+  conveyor_ = std::make_shared<manager::Camera>(nh, "project_ariac/conveyer");
+
   agv_[0] = std::make_shared<manager::Agv>(nh, "/ariac/agv1/state");
   agv_[1] = std::make_shared<manager::Agv>(nh, "/ariac/agv2/state");
 
@@ -64,15 +66,14 @@ void Manager::checkInventory() {
     ROS_INFO_STREAM("Scanning the item");
     ros::spinOnce();
     rate_->sleep();
-  } while (!logical_camera_1_->isPopulated() &&
-           !logical_camera_2_->isPopulated());
+  } while (!logical_camera_4_->isPopulated());
 
   // reset inventory for update
   inventory_.clear();
   std::string frame;
   manager::CameraMsg image_msg;
 
-  for (auto itr : {logical_camera_1_, logical_camera_2_}) {
+  for (auto itr : {logical_camera_4_}) {
     // add parts from Camera
     image_msg = itr->getMessage();
     frame = itr->getSensorFrame();
@@ -86,13 +87,30 @@ void Manager::checkInventory() {
 }
 
 geometry_msgs::PoseStamped Manager::getPart(const std::string &partType) {
-  // geometry_msgs::PoseStamped part = inventory_[partType].front();
-  // assumption inventory has enough part
-  if (inventory_[partType].empty())
-    checkInventory();
-  auto it = inventory_[partType].begin();
-  geometry_msgs::PoseStamped part = *it;
-  inventory_[partType].erase(it);
+  geometry_msgs::PoseStamped part;
+
+  if (!inventory_[partType].empty()) {
+    auto it = inventory_[partType].begin();
+    part = *it;
+    inventory_[partType].erase(it);
+    ROS_INFO_STREAM("part found on bin");
+    return part;
+  } else {
+    for (const auto &itr_part : conveyor_->getMessage()->models) {
+      if (itr_part.type == partType) {
+        // find pickable part
+        if (itr_part.pose.position.y > 0 && itr_part.pose.position.y < 2.0) {
+          part.pose = itr_part.pose;
+          part.header.frame_id = "world";
+          ROS_INFO_STREAM("part found on conveyor");
+          return part;
+        }
+      }
+    }
+  }
+  ROS_WARN_STREAM("part not found");
+
+  part.header.frame_id = "invalid";
   return part;
 }
 /// Start the competition by waiting for and then calling the start ROS
@@ -181,9 +199,7 @@ manager::OrderMsg Manager::getTheOrderMsg() {
   return order_manager_->getMessage();
 }
 
-bool Manager::isHighOrder() {
-  return (order_manager_->getCounter() > 1);
-}
+bool Manager::isHighOrder() { return (order_manager_->getCounter() > 1); }
 
 std::vector<geometry_msgs::PoseStamped>
 Manager::look_over_tray(const geometry_msgs::Pose &target,

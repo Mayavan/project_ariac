@@ -89,6 +89,8 @@ UR10_Control::UR10_Control(const ros::NodeHandle &server)
 UR10_Control::~UR10_Control() { ur10_.stop(); }
 
 bool UR10_Control::move() {
+  auto current_time = ros::Time::now();
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
@@ -96,6 +98,7 @@ bool UR10_Control::move() {
 
   bool success = (ur10_.plan(planner_) ==
                   moveit::planning_interface::MoveItErrorCode::SUCCESS);
+
   if (success) {
     ROS_INFO("Planned success.");
     // ur10_.move();
@@ -103,7 +106,8 @@ bool UR10_Control::move() {
   } else {
     ROS_WARN("Planned unsucess!");
   }
-
+  ROS_WARN_STREAM(" planning time:" << ros::Time::now().toSec() -
+                                           current_time.toSec());
   return success;
 }
 
@@ -122,6 +126,7 @@ bool UR10_Control::move(const std::vector<geometry_msgs::Pose> &waypoints,
                         double jump_threshold) {
   // ros::AsyncSpinner spinner(1);
   // spinner.start();
+  auto current_time = ros::Time::now();
   moveit_msgs::RobotTrajectory trajectory;
   ur10_.setMaxVelocityScalingFactor(velocity_factor);
 
@@ -130,9 +135,12 @@ bool UR10_Control::move(const std::vector<geometry_msgs::Pose> &waypoints,
   planner_.trajectory_ = trajectory;
 
   ROS_INFO("UR10 control Move %.2f%% acheived..", fraction * 100.0);
-
+  // ROS_WARN_STREAM("cartesian planning time:" << ros::Time::now().toSec() -
+  // current_time.toSec());
   if (fraction > 0.9) {
     ur10_.execute(planner_);
+    ROS_WARN_STREAM("Cartesian planning time:" << ros::Time::now().toSec() -
+                                                      current_time.toSec());
     return true;
   }
   return false;
@@ -258,7 +266,7 @@ bool UR10_Control::place(const std::vector<geometry_msgs::Pose> &targets) {
   // it will stop the motion,
   // if robot drop part
   place_monitor_ = true;
-  move(targets, 0.5, 0.005);
+  move(targets, 0.5, 0.01);
   place_monitor_ = false;
   // should attach before openning
   // robot didn't drop part
@@ -313,4 +321,86 @@ void UR10_Control::initConstraint() {
     count++;
   }
   ur10_.setPathConstraints(ur10_constraints);
+}
+
+bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
+                                   double speed) {
+  ros::Time last_time, current_time;
+  current_time = ros::Time::now();
+
+  auto conveyer_joint = home_joint_angle_;
+  conveyer_joint[0] = 1.0; // TODO should change as per target
+  conveyer_joint[1] = 0.0;
+  { move(conveyer_joint); }
+
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+
+  target_.position = target.position; // lock the orientation
+  target_.position.z += 0.5;
+
+  last_time = current_time;
+  current_time = ros::Time::now();
+  target_.position.y += speed * (current_time.toSec() - last_time.toSec());
+
+  std::vector<geometry_msgs::Pose> targets = {target_};
+  //
+  // ROS_INFO_STREAM("Going to target");
+  // {
+  //   // cartesian planner Async spinner
+  //   // ros::AsyncSpinner spinner(1);
+  //   // spinner.start(); // limit the spinner
+  //   move(target_);
+  // }
+  // // move(target_);
+  // ROS_INFO_STREAM("Gripper on");
+  // // activate gripper
+  gripperAction(gripper::CLOSE);
+  target_.position.z -= 0.5 - 1.9 * z_offSet_;
+  //
+  // // target_.position.z += z_offSet_;
+  last_time = current_time;
+  current_time = ros::Time::now();
+  target_.position.y +=
+      speed * (current_time.toSec() - last_time.toSec() + 5.0);
+  targets.push_back(target_);
+
+  pickup_monitor_ = true; // stop motion if part picked up
+  // {
+  //   // ros::AsyncSpinner spinner(1);
+  //   // spinner.start(); // limit the spinner
+  //   do {
+  //     ROS_INFO_STREAM("Grabbing");
+  //     current_time = ros::Time::now();
+  //     // update the part position
+  //     target_.position.y += speed * (current_time.toSec() - last_time.toSec()
+  //     +
+  //                                    AVERAGE_PLANNING_TIME);
+  //     // move
+  //     if (!move(target_))
+  //       return false;
+  //
+  //     ros::spinOnce(); // gripper state callback
+  //     last_time = current_time;
+  //     //  do until extreme point or part picked
+  //   } while (target.position.y > -2.0 && !gripper_state_.attached);
+  // }
+
+  target_.position.y +=
+      speed * (current_time.toSec() - last_time.toSec() + 5.5);
+  targets.push_back(target_);
+
+  if (!move(targets, 1.0, 0.006))
+    return false;
+
+  pickup_monitor_ = false;
+  ROS_INFO_STREAM("out");
+
+  // goto safe palce
+  target_.position.z += 0.5;
+  move({target_}, 1.0, 0.1);
+
+  ros::spinOnce();
+  ros::Duration(0.5).sleep();
+  return gripper_state_.attached;
 }

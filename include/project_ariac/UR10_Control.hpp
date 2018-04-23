@@ -55,14 +55,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "project_ariac/Interface.hpp"
 #include "project_ariac/Sensor.hpp"
 
-namespace UR10
-{
+namespace UR10 {
 typedef osrf_gear::VacuumGripperState GripperState;
 typedef std::shared_ptr<planning_scene::PlanningScene> PlanningScenePtr;
-}
+} // namespace UR10
 
-class UR10_Control : public Interface
-{
+class UR10_Control : public Interface {
 public:
   explicit UR10_Control(const ros::NodeHandle &server);
   ~UR10_Control();
@@ -73,16 +71,12 @@ public:
             double velocity_factor = 1.0, double eef_step = 0.05,
             double jump_threshold = 0.0);
 
-  // geometry_msgs::Pose getTransfrom(const std::string& src,
-  //                                  const std::string& target);
-  // geometry_msgs::Pose getPose(const geometry_msgs::Pose& inPose,
-  //                             const std::string& ref);
-
   geometry_msgs::Pose target_, home_, agv_[2];
   std::vector<double> home_joint_angle_;
 
   bool pickup(const geometry_msgs::Pose &target);
   bool robust_pickup(const geometry_msgs::PoseStamped &pose, int max_try = 5);
+  bool conveyor_pickup(const geometry_msgs::Pose &target, double speed = -0.2);
 
   bool place(const std::vector<geometry_msgs::Pose> &targets);
   bool place(geometry_msgs::Pose target, int agv = 0);
@@ -110,8 +104,7 @@ private:
   bool pickup_monitor_, place_monitor_;
 };
 
-namespace gripper
-{
+namespace gripper {
 const bool OPEN = false;
 const bool CLOSE = true;
 } // namespace gripper

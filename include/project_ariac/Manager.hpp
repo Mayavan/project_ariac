@@ -103,6 +103,7 @@ private:
   NodePtr nh_;
   manager::CameraPtr logical_camera_1_, logical_camera_2_, logical_camera_3_,
       logical_camera_4_;
+  manager::CameraPtr conveyor_;
   manager::AgvPtr agv_[2];
   manager::OrderPtr order_manager_;
   manager::RatePtr rate_;

@@ -64,5 +64,10 @@ private:
   ros::Publisher pub_part;
   ros::Time last_time_, current_time_;
   conveyor::Database inventory_;
-  double SPEED_ = 0.2;
+  double SPEED_ = -0.2;
+
+  // callback
+  osrf_gear::Model model_;
+  geometry_msgs::Pose part_;
+  conveyor::Database::iterator itr;
 };
