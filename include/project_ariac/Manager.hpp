@@ -96,6 +96,10 @@ public:
   std::vector<geometry_msgs::PoseStamped>
   look_over_tray(const geometry_msgs::Pose &target, const std::string &partType,
                  const int &agv);
+
+  std::vector<osrf_gear::KitObject> kit_check(const osrf_gear::Kit &kit,
+                                              std::string camera);
+
   bool isAgvReady(const int &no);
   int pick_agv();
 

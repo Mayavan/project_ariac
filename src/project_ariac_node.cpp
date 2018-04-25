@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
   priority_order = false;
   while (!ariac_order.empty()) {
     auto kits = ariac_order.back()->kits;
-    ur10.move(ur10.home_joint_angle_);
+    // ur10.move(ur10.home_joint_angle_);
     while (!kits.empty()) {
       // TODO(ravib)
       // not proper but its work around for competition
@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
         ROS_INFO_STREAM("Pickup :" << part.type);
         auto p = m.getPart(part.type);
         // pick up part
-        result = ur10.robust_pickup(p, 1, part.type); // max_try = 1
+        result = ur10.robust_pickup(p, part.type); // max_try = 1
         ROS_INFO_STREAM("Pick up complete:" << result);
         // if success than place or pick another part
 
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
             // if tray has part than pick and place to correct postion
             if (!v.empty()) {
               ROS_INFO_STREAM("Incorrect postion on tray found");
-              if (ur10.robust_pickup(v.front(), 1, part.type))
+              if (ur10.robust_pickup(v.front(), part.type))
                 if (ur10.place(p.pose, agv))
                   tasks.erase(tasks.begin());
             }
@@ -115,6 +115,11 @@ int main(int argc, char **argv) {
     if (!priority_order) {
       ariac_order.pop_back();
     }
+  }
+  ros::Duration(5.0).sleep();
+  while (!m.isAgvReady(0) && !m.isAgvReady(1)) {
+    ros::spinOnce();
+    ros::Duration(1.0).sleep();
   }
   m.end_competition();
   return 0;

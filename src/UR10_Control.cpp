@@ -60,22 +60,28 @@ UR10_Control::UR10_Control(const ros::NodeHandle &server)
   ur10_.setPlanningTime(planning_time);
   ur10_.setNumPlanningAttempts(planning_attempt);
   ur10_.allowReplanning(true);
-  ur10_.setMaxAccelerationScalingFactor(0.5);
-  ur10_.setMaxVelocityScalingFactor(0.5);
-
+  ur10_.setGoalTolerance(0.01);
   // ur10_.setEndEffector("vacuum_gripper_link");
   move(home_joint_angle_); // Home condition
+
+  agv_waypoint_[0] = home_joint_angle_;
+  agv_waypoint_[0][1] = 1.55;
+  agv_waypoint_[1] = home_joint_angle_;
+  agv_waypoint_[1][1] = -1.55;
+
   ros::Duration(0.5).sleep();
   // Find pose of home position
   home_ = this->getTransfrom(base_link, end_link);
   target_ = home_;
 
-  agv_[0] = this->getTransfrom("world", "agv1_load_point_frame");
+  agv_[0] = this->getTransfrom("world", "logical_camera_1_kit_tray_1_frame");
   agv_[0].position.z += 0.5;
+  agv_[0].position.y -= 0.5;
   agv_[0].orientation = home_.orientation;
 
-  agv_[1] = this->getTransfrom("world", "agv2_load_point_frame");
+  agv_[1] = this->getTransfrom("world", "logical_camera_2_kit_tray_2_frame");
   agv_[1].position.z += 0.5;
+  agv_[1].position.y += 0.5;
   agv_[1].orientation = home_.orientation;
 
   // Init the gripper control and feedback
@@ -138,10 +144,10 @@ bool UR10_Control::move(const std::vector<geometry_msgs::Pose> &waypoints,
   return false;
 }
 
-void UR10_Control::gripperAction(const bool action) {
+void UR10_Control::gripperAction(UR10::Gripper_State action) {
   osrf_gear::VacuumGripperControl srv;
 
-  srv.request.enable = action ? gripper::CLOSE : gripper::OPEN;
+  srv.request.enable = action;
 
   gripper_.call(srv);
 
@@ -174,31 +180,33 @@ bool UR10_Control::pickup(const geometry_msgs::Pose &target) {
   target_.position.z = target.position.z + z_offSet_;
   waypoints.push_back(target_);
 
-  gripperAction(gripper::CLOSE);
+  gripperAction(UR10::Gripper_State::CLOSE);
   // should stop after part is being picked
   pickup_monitor_ = true;
 
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  if (!move(waypoints, 1.0, 0.005))
+  if (!move(waypoints))
     return false;
-
   // move({target_}, 0.1, 0.001);  // Grasp move
   ros::Duration(1.0).sleep();
   pickup_monitor_ = false;
-  target_.position.z += 0.5;
-  if (!move({target_}))
+
+  target_.position.z = home_.position.z;
+  if (!move({target_})) {
+    move(home_joint_angle_); // reset position
     return false;
+  }
   // should attach after execution
   // it means, robot pick up part
   ros::spinOnce();
-  ros::Duration(0.5).sleep();
+  ros::Duration(2.0).sleep();
   return gripper_state_.attached;
   // return res.result;i
 }
 
 bool UR10_Control::robust_pickup(const geometry_msgs::PoseStamped &pose,
-                                 int max_try, std::string partType) {
+                                 std::string partType, int max_try) {
   bool result;
   // hover below camera
   // auto t = getTransfrom("world", "bin_6_frame");
@@ -208,14 +216,17 @@ bool UR10_Control::robust_pickup(const geometry_msgs::PoseStamped &pose,
   if (partType == "gear_part" || partType == "piston_rod_part") {
     z_offSet_ = 0.02;
   } else if (partType == "disk_part") {
-    z_offSet_ = 0.035;
+    z_offSet_ = 0.03;
   } else {
     z_offSet_ = 0.038;
   }
+
+  auto target_pick = getPose(pose);
+  target_pick.pose.position.z += 0.002;
   do {
     // PoseStamped had header and getPose will give pose with world
     ROS_INFO_STREAM("Pick up try:" << max_try);
-    auto target_pick = getPose(pose);
+    target_pick.pose.position.z -= 0.002;
     result = pickup(target_pick.pose);
     max_try--;
     // it will try until sucess or max try
@@ -227,7 +238,7 @@ bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
   // Lock the orientation
   // initConstraint();
   std::vector<geometry_msgs::Pose> waypoints;
-  waypoints.reserve(3);
+  waypoints.reserve(2);
   // target_.position.z += 0.1;
   // waypoints.push_back(target_);
 
@@ -237,23 +248,15 @@ bool UR10_Control::place(geometry_msgs::Pose target, int agv) {
 
   target.position.z += 2 * z_offSet_;
 
-  // orientation convert to rpy and assign yaw and convert back to euler
-  tf::Quaternion q, final;
-  tf::Matrix3x3 m;
-  double r_h, p_h, y_h, y_t;
-  q = {target.orientation.x, target.orientation.y, target.orientation.z,
-       target.orientation.w};
-  m.setRotation(q);
-  m.getRPY(r_h, p_h, y_t);
-  q = {home_.orientation.x, home_.orientation.y, home_.orientation.z,
-       home_.orientation.w};
-  m.setRotation(q);
-  m.getRPY(r_h, p_h, y_h);
-  final = tf::createQuaternionFromRPY(r_h, p_h, y_t);
-  target.orientation.x = final.getX();
-  target.orientation.y = final.getY();
-  target.orientation.z = final.getZ();
-  target.orientation.w = final.getW();
+  double roll, pitch, yaw, dummy;
+  tf::Matrix3x3(tf::Quaternion(target.orientation.x, target.orientation.y,
+                               target.orientation.z, target.orientation.w))
+      .getRPY(roll, pitch, yaw);
+  tf::Matrix3x3(tf::Quaternion(home_.orientation.x, home_.orientation.y,
+                               home_.orientation.z, home_.orientation.w))
+      .getRPY(roll, pitch, dummy);
+  target.orientation =
+      tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
 
   waypoints.push_back(target);
 
@@ -276,7 +279,7 @@ bool UR10_Control::place(const std::vector<geometry_msgs::Pose> &targets) {
 
   ros::spinOnce();
   bool result = gripper_state_.attached;
-  gripperAction(gripper::OPEN);
+  gripperAction(UR10::Gripper_State::OPEN);
   if (result) {
     //   // ready for next part
     //   // target_.position.z += 0.1;
@@ -287,50 +290,35 @@ bool UR10_Control::place(const std::vector<geometry_msgs::Pose> &targets) {
 }
 
 bool UR10_Control::robust_place(const geometry_msgs::Pose &target,
-                                const std::string &ref, int agv) {
+                                const std::string &ref, int agv, int max_try) {
   bool result;
-
   auto target_place = getPose(target, ref);
 
-  auto target_agv = home_joint_angle_;
-  if (agv == 0) {
-    target_agv[1] = 1.55;
-    move(target_agv);
-  } else {
-    target_agv[1] = -1.55;
-    move(target_agv);
-  }
-
-  result = place(target_place, agv);
+  do {
+    if (max_try < 2) {
+      move(home_joint_angle_);
+      ros::Duration(1.0).sleep();
+      move(agv_waypoint_[agv]);
+    }
+    result = place(target_place, agv);
+    max_try--;
+  } while (!result && max_try > 0);
 
   if (!result) {
     ROS_WARN_STREAM("Robust Place failed..!");
     //   robust_pickup("find the part");
     //   place(target_place, agv);
   } else {
-    move(home_joint_angle_);
+    // move(home_joint_angle_);
   }
 
   return result;
 }
 
-void UR10_Control::initConstraint() {
-  moveit_msgs::Constraints ur10_constraints;
-  moveit_msgs::JointConstraint jcm;
-  auto joints = {"elbow_joint",         "linear_arm_actuator_joint",
-                 "shoulder_lift_joint", "shoulder_pan_joint",
-                 "wrist_1_joint",       "wrist_2_joint",
-                 "wrist_3_joint"};
+std::vector<double> UR10_Control::getHomeJoint() { return home_joint_angle_; }
 
-  size_t count = 0;
-  for (const auto &joint : joints) {
-    jcm.joint_name = joint;
-    jcm.position = home_joint_angle_[count];
-    jcm.tolerance_above = 1.0;
-    jcm.tolerance_below = -3.0;
-    jcm.weight = 1.0;
-    ur10_constraints.joint_constraints.push_back(jcm);
-    count++;
-  }
-  ur10_.setPathConstraints(ur10_constraints);
+geometry_msgs::Pose UR10_Control::getHomePose() { return home_; };
+
+geometry_msgs::Pose UR10_Control::getAgvPosition(const int &agv) {
+  return agv_[agv];
 }
