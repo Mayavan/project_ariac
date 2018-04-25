@@ -61,13 +61,14 @@ UR10_Control::UR10_Control(const ros::NodeHandle &server)
   ur10_.setNumPlanningAttempts(planning_attempt);
   ur10_.allowReplanning(true);
   ur10_.setGoalTolerance(0.01);
-  // ur10_.setEndEffector("vacuum_gripper_link");
+  ur10_.setEndEffector("vacuum_gripper_link");
   move(home_joint_angle_); // Home condition
 
   agv_waypoint_[0] = home_joint_angle_;
-  agv_waypoint_[0][1] = 1.55;
+  agv_waypoint_[0][1] = 1.57;
+
   agv_waypoint_[1] = home_joint_angle_;
-  agv_waypoint_[1][1] = -1.55;
+  agv_waypoint_[1][1] = 4.71;
 
   ros::Duration(0.5).sleep();
   // Find pose of home position
@@ -216,7 +217,7 @@ bool UR10_Control::robust_pickup(const geometry_msgs::PoseStamped &pose,
   if (partType == "gear_part" || partType == "piston_rod_part") {
     z_offSet_ = 0.02;
   } else if (partType == "disk_part") {
-    z_offSet_ = 0.03;
+    z_offSet_ = 0.025;
   } else {
     z_offSet_ = 0.038;
   }
@@ -293,11 +294,9 @@ bool UR10_Control::robust_place(const geometry_msgs::Pose &target,
                                 const std::string &ref, int agv, int max_try) {
   bool result;
   auto target_place = getPose(target, ref);
-
+  agv_waypoint_[agv][0] = target_.position.y;
   do {
     if (max_try < 2) {
-      move(home_joint_angle_);
-      ros::Duration(1.0).sleep();
       move(agv_waypoint_[agv]);
     }
     result = place(target_place, agv);
