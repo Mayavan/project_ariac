@@ -90,6 +90,11 @@ UR10_Control::UR10_Control(const ros::NodeHandle &server)
       "/ariac/gripper/control");
   gripper_sensor_ = nh_.subscribe("/ariac/gripper/state/", 10,
                                   &UR10_Control::gripperStatusCallback, this);
+
+  quality_sensor_1_ = 
+      std::make_shared<UR10::Camera>(server, "/ariac/quality_control_sensor_1");
+  quality_sensor_2_ = 
+      std::make_shared<UR10::Camera>(server, "/ariac/quality_control_sensor_2");   
   ros::Duration(0.5).sleep();
 }
 
@@ -277,7 +282,11 @@ bool UR10_Control::place(const std::vector<geometry_msgs::Pose> &targets) {
   place_monitor_ = false;
   // should attach before openning
   // robot didn't drop part
-
+  if (checkQuality()) {
+      geometry_msgs::Pose newpose = targets.back();
+      newpose.position.x -= 0.5;
+      move({target_});
+  }
   ros::spinOnce();
   bool result = gripper_state_.attached;
   gripperAction(UR10::Gripper_State::OPEN);
@@ -320,4 +329,11 @@ geometry_msgs::Pose UR10_Control::getHomePose() { return home_; };
 
 geometry_msgs::Pose UR10_Control::getAgvPosition(const int &agv) {
   return agv_[agv];
+}
+
+bool UR10_Control::checkQuality() { 
+  if (quality_sensor_1_->isPopulated() || quality_sensor_2_->isPopulated())
+    return true;
+  else
+    return false;
 }

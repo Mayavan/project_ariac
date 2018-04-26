@@ -90,30 +90,12 @@ int main(int argc, char **argv) {
               ROS_INFO_STREAM("Incorrect postion on tray found");
               if (ur10.robust_pickup(v.front(), part.type))
                 if (ur10.place(p.pose, agv))
-                  if (m.checkQuality(agv)) {
-                    geometry_msgs::PoseStamped newpose;
-                    newpose.header.frame_id = camera_frame;
-                    newpose.pose = p.pose;
-                    ur10.robust_pickup(newpose, part.type);
-                    newpose.pose.position.x -= 0.5;
-                    ur10.place(newpose.pose, agv);
-                  } else {
                   tasks.erase(tasks.begin());
-                  }
             }
           } else {
               // if placed successfully check for quality
-              if (m.checkQuality(agv)) {
-              geometry_msgs::PoseStamped newpose;
-              newpose.header.frame_id = camera_frame;
-              newpose.pose = part.pose;
-              ur10.robust_pickup(newpose, part.type);
-              newpose.pose.position.x -= 0.5;
-              ur10.place(newpose.pose, agv);
-              } else {
                   tasks.erase(
                   tasks.begin()); // part place sucess thn remove from tasks list
-              }
           }
         }
         if (m.isHighOrder()) {

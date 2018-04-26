@@ -47,6 +47,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <osrf_gear/VacuumGripperControl.h>
 #include <osrf_gear/VacuumGripperState.h>
+#include <osrf_gear/LogicalCameraImage.h>
 
 #include <memory>
 #include <string>
@@ -58,6 +59,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace UR10 {
 typedef osrf_gear::VacuumGripperState GripperState;
 typedef std::shared_ptr<planning_scene::PlanningScene> PlanningScenePtr;
+typedef osrf_gear::LogicalCameraImage::ConstPtr CameraMsg;
+typedef Sensor<CameraMsg> Camera;
+typedef std::shared_ptr<Camera> CameraPtr;
 enum Gripper_State { OPEN = 0, CLOSE = 1 };
 } // namespace UR10
 
@@ -84,6 +88,7 @@ public:
   std::vector<double> getHomeJoint();
   geometry_msgs::Pose getHomePose();
   geometry_msgs::Pose getAgvPosition(const int &agv);
+  bool checkQuality();
 
 protected:
   void gripperStatusCallback(const UR10::GripperState &gripper_status);
@@ -95,6 +100,7 @@ private:
   ros::Subscriber gripper_sensor_;
   ros::ServiceClient gripper_;
   UR10::GripperState gripper_state_;
+  UR10::CameraPtr quality_sensor_1_, quality_sensor_2_;
 
   moveit::planning_interface::MoveGroupInterface ur10_;
   moveit::planning_interface::MoveGroupInterface::Plan planner_;

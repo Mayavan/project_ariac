@@ -102,12 +102,11 @@ public:
 
   bool isAgvReady(const int &no);
   int pick_agv();
-  bool checkQuality(int agv);
 
 private:
   NodePtr nh_;
   manager::CameraPtr logical_camera_1_, logical_camera_2_, logical_camera_3_,
-     logical_camera_4_, logical_camera_5_, logical_camera_6_, quality_sensor_1_, quality_sensor_2_;
+     logical_camera_4_, logical_camera_5_, logical_camera_6_;
   manager::AgvPtr agv_[2];
   manager::OrderPtr order_manager_;
   manager::RatePtr rate_;
