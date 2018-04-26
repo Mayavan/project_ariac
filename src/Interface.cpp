@@ -44,8 +44,8 @@ geometry_msgs::Pose Interface::getTransfrom(const std::string &src,
   // auto time = ros::Time(0);
   // buffer_.waitForTransform(src, target, ros::Time(0), ros::Duration(10));
   try {
-    transformStamped_ = buffer_.lookupTransform(src, target, ros::Time::now(),
-                                                ros::Duration(10));
+    transformStamped_ =
+        buffer_.lookupTransform(src, target, ros::Time(0), ros::Duration(10));
   } catch (tf2::TransformException &ex) {
     ROS_ERROR("%s", ex.what());
     ros::Duration(0.5).sleep();

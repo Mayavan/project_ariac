@@ -42,10 +42,15 @@ Manager::Manager(const ros::NodeHandle &nh) {
       std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_1");
   logical_camera_2_ =
       std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_2");
+
   logical_camera_3_ =
       std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_3");
   logical_camera_4_ =
       std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_4");
+  logical_camera_5_ =
+      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_5");
+  logical_camera_6_ =
+      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_6");
 
   conveyor_ = std::make_shared<manager::Camera>(nh, "project_ariac/conveyer");
 
@@ -62,21 +67,27 @@ Manager::~Manager() { inventory_.clear(); }
 
 void Manager::checkInventory() {
   // Wait until camera see
-  do {
-    ROS_INFO_STREAM("Scanning the item");
-    ros::spinOnce();
-    rate_->sleep();
-  } while (!logical_camera_4_->isPopulated());
 
-  // reset inventory for update
+  auto cameras = {logical_camera_3_, logical_camera_4_, logical_camera_5_,
+                  logical_camera_6_};
+
   inventory_.clear();
-  std::string frame;
-  manager::CameraMsg image_msg;
+  for (const auto &cam : cameras) {
 
-  for (auto itr : {logical_camera_4_}) {
+    do {
+      ROS_INFO_STREAM("Scanning the item");
+      ros::spinOnce();
+      rate_->sleep();
+    } while (!cam->isPopulated());
+
+    // reset inventory for update;
+    std::string frame;
+    manager::CameraMsg image_msg;
+
+    // for (auto itr : {logical_camera_1_, logical_camera_2_}) {
     // add parts from Camera
-    image_msg = itr->getMessage();
-    frame = itr->getSensorFrame();
+    image_msg = cam->getMessage();
+    frame = cam->getSensorFrame();
     for (const auto &part : image_msg->models) {
       geometry_msgs::PoseStamped p_;
       p_.pose = part.pose;
@@ -199,12 +210,18 @@ manager::OrderMsg Manager::getTheOrderMsg() {
   return order_manager_->getMessage();
 }
 
-bool Manager::isHighOrder() { return (order_manager_->getCounter() > 1); }
+bool Manager::isHighOrder() {
+  if (order_manager_->getCounter() > 1) {
+    order_manager_->setCounter();
+    return true;
+  }
+  return false;
+}
 
 std::vector<geometry_msgs::PoseStamped>
 Manager::look_over_tray(const geometry_msgs::Pose &target,
                         const std::string &partType, const int &agv) {
-  auto camera = agv == 0 ? logical_camera_3_ : logical_camera_4_;
+  auto camera = agv == 0 ? logical_camera_1_ : logical_camera_2_;
 
   do {
     ROS_INFO_STREAM("Looking over tray...");

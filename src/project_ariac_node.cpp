@@ -29,8 +29,8 @@ int main(int argc, char **argv) {
   ros::NodeHandle node;
   ros::NodeHandle private_node_handle("~");
 
-  bool result, run;
-  private_node_handle.param("run", run, false);
+  bool run, result, priority_order;
+
   UR10_Control ur10(private_node_handle);
 
   geometry_msgs::Pose target_pick, target_place;
@@ -43,20 +43,26 @@ int main(int argc, char **argv) {
   // update inventory
   m.checkInventory();
   // take order
+  std::vector<osrf_gear::KitObject> pending_task;
   std::vector<manager::OrderMsg> ariac_order = {m.getTheOrderMsg()};
   // wait for order
+
   while (!ariac_order.empty()) {
 
     // BUG modifing local copy bug
     auto kits = ariac_order.back()->kits;
-
+    // ur10.move(ur10.home_joint_angle_);
     while (!kits.empty()) {
       // TODO(ravib)
       // not proper but its work around for competition
-      // refactor need
-      auto tasks = kits.front().objects;
+      // refactor needo
+      auto &tasks = kits.front().objects;
       // int agv = m.pick_agv();
-      int agv = 1;
+      if (!priority_order && !pending_task.empty()) {
+        tasks = pending_task;
+      }
+      int agv = priority_order ? 1 : 0;
+      priority_order = false;
       // Do until every part is placed
       while (!tasks.empty()) {
         auto part = tasks.front();
@@ -68,17 +74,16 @@ int main(int argc, char **argv) {
           p = m.getPart(part.type);
         } while (p.header.frame_id == "invalid");
         // pick up part
-
         ROS_INFO_STREAM("Pickup :" << part.type);
         // is it over conveyor?
         if (p.header.frame_id == "world") {
           result = ur10.conveyor_pickup(p.pose);
         } else {
-          result = ur10.robust_pickup(p, 1); // max_try = 1
+          result = ur10.robust_pickup(p, part.type); // max_try = 1
         }
 
         ROS_INFO_STREAM("Pick up complete:" << result);
-        // if scuess than place or pick another part
+        // if success than place or pick another part
 
         std::string camera_frame =
             agv ? "logical_camera_" + std::to_string(CAMERA_OVER_TRAY_TWO) +
@@ -96,7 +101,7 @@ int main(int argc, char **argv) {
             // if tray has part than pick and place to correct postion
             if (!v.empty()) {
               ROS_INFO_STREAM("Incorrect postion on tray found");
-              if (ur10.robust_pickup(v.front(), 1))
+              if (ur10.robust_pickup(v.front(), part.type))
                 if (ur10.place(p.pose, agv))
                   tasks.erase(tasks.begin());
             }
@@ -105,18 +110,30 @@ int main(int argc, char **argv) {
                 tasks.begin()); // part place sucess thn remove from tasks list
           }
         }
-        // check high priority and push_back and break;
+        if (m.isHighOrder()) {
+          priority_order = true; // complete the high priority order with agv0;
+          ariac_order.push_back(m.getTheOrderMsg());
+          pending_task = tasks;
+          break;
+        }
       }
+      if (priority_order)
+        break;
       // after completing all task send kit
       m.send_order("/ariac/agv" + std::to_string(agv + 1),
                    kits.front().kit_type);
       kits.erase(kits.begin());
-      ur10.move(ur10.home_joint_angle_);
-      ros::Duration(20.0).sleep(); // wait for agv to avilable
+      // ros::Duration(20.0).sleep(); // wait for agv to avilable
     }
-    ariac_order.pop_back();
+    if (!priority_order) {
+      ariac_order.pop_back();
+    }
   }
-
+  ros::Duration(5.0).sleep();
+  while (!m.isAgvReady(0) && !m.isAgvReady(1)) {
+    ros::spinOnce();
+    ros::Duration(1.0).sleep();
+  }
   m.end_competition();
   return 0;
 }

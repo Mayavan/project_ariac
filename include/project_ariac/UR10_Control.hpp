@@ -58,53 +58,52 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace UR10 {
 typedef osrf_gear::VacuumGripperState GripperState;
 typedef std::shared_ptr<planning_scene::PlanningScene> PlanningScenePtr;
+enum Gripper_State { OPEN = 0, CLOSE = 1 };
 } // namespace UR10
 
 class UR10_Control : public Interface {
 public:
   explicit UR10_Control(const ros::NodeHandle &server);
   ~UR10_Control();
-  void gripperAction(const bool action);
+  void gripperAction(UR10::Gripper_State action);
   bool move(const geometry_msgs::Pose &target);
   bool move(const std::vector<double> &target_joint);
   bool move(const std::vector<geometry_msgs::Pose> &waypoints,
             double velocity_factor = 1.0, double eef_step = 0.05,
             double jump_threshold = 0.0);
 
-  geometry_msgs::Pose target_, home_, agv_[2];
-  std::vector<double> home_joint_angle_;
-
   bool pickup(const geometry_msgs::Pose &target);
-  bool robust_pickup(const geometry_msgs::PoseStamped &pose, int max_try = 5);
+  bool robust_pickup(const geometry_msgs::PoseStamped &pose,
+                     std::string partType, int max_try = 5);
   bool conveyor_pickup(const geometry_msgs::Pose &target, double speed = -0.2);
 
   bool place(const std::vector<geometry_msgs::Pose> &targets);
   bool place(geometry_msgs::Pose target, int agv = 0);
   bool robust_place(const geometry_msgs::Pose &target, const std::string &ref,
-                    int agv = 0);
+                    int agv = 0, int max_try = 5);
+
+  std::vector<double> getHomeJoint();
+  geometry_msgs::Pose getHomePose();
+  geometry_msgs::Pose getAgvPosition(const int &agv);
 
 protected:
   void gripperStatusCallback(const UR10::GripperState &gripper_status);
-  void initConstraint();
   bool move();
 
 private:
   ros::NodeHandle nh_;
-  // geometry_msgs::Pose target_, home_, agv_;
+
   ros::Subscriber gripper_sensor_;
   ros::ServiceClient gripper_;
   UR10::GripperState gripper_state_;
 
   moveit::planning_interface::MoveGroupInterface ur10_;
   moveit::planning_interface::MoveGroupInterface::Plan planner_;
-  // tf::TransformListener listener_;
+
+  geometry_msgs::Pose target_, home_, agv_[2];
+  std::vector<double> home_joint_angle_;
+  std::vector<double> agv_waypoint_[2];
 
   double z_offSet_;
-
   bool pickup_monitor_, place_monitor_;
 };
-
-namespace gripper {
-const bool OPEN = false;
-const bool CLOSE = true;
-} // namespace gripper
