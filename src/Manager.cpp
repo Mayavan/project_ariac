@@ -51,6 +51,11 @@ Manager::Manager(const ros::NodeHandle &nh) {
       std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_5");
   logical_camera_6_ =
       std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_6");
+  quality_sensor_1_ = 
+      std::make_shared<manager::Camera>(nh, "/ariac/quality_control_sensor_1");
+  quality_sensor_2_ = 
+      std::make_shared<manager::Camera>(nh, "/ariac/quality_control_sensor_2");    
+
 
   agv_[0] = std::make_shared<manager::Agv>(nh, "/ariac/agv1/state");
   agv_[1] = std::make_shared<manager::Agv>(nh, "/ariac/agv2/state");
@@ -253,4 +258,12 @@ int Manager::pick_agv() {
   } while (!isAgvReady(0) && !isAgvReady(1));
 
   return isAgvReady(1) ? 1 : 0;
+}
+
+bool Manager::checkQuality(int agv) {
+  auto quality_sensor = agv == 0 ? quality_sensor_1_ : quality_sensor_2_; 
+  if (quality_sensor->isPopulated())
+    return true;
+  else
+    return false;
 }

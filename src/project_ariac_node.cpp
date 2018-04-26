@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
   bool run, result, priority_order;
   // private_node_handle.param("run", run, false);
   UR10_Control ur10(private_node_handle);
-
+  
   geometry_msgs::Pose target_pick, target_place;
   tf::StampedTransform transform;
 
@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
           // place
           result = ur10.robust_place(part.pose, camera_frame, agv);
           // place failed
-          if (!result) {
+          if(!result) {
             // check over tray
             p.pose = m.getPose(part.pose, camera_frame);
             auto v = m.look_over_tray(p.pose, part.type, agv);
@@ -90,11 +90,30 @@ int main(int argc, char **argv) {
               ROS_INFO_STREAM("Incorrect postion on tray found");
               if (ur10.robust_pickup(v.front(), part.type))
                 if (ur10.place(p.pose, agv))
+                  if (m.checkQuality(agv)) {
+                    geometry_msgs::PoseStamped newpose;
+                    newpose.header.frame_id = p.header.frame_id;
+                    newpose.pose = p.pose;
+                    ur10.robust_pickup(newpose, part.type);
+                    newpose.pose.position.x -= 0.5;
+                    ur10.place(newpose.pose, agv);
+                  } else {
                   tasks.erase(tasks.begin());
+                  }
             }
           } else {
-            tasks.erase(
-                tasks.begin()); // part place sucess thn remove from tasks list
+              // if placed successfully check for quality
+              if (m.checkQuality(agv)) {
+              geometry_msgs::PoseStamped newpose;
+              newpose.header.frame_id = p.header.frame_id;
+              newpose.pose = part.pose;
+              ur10.robust_pickup(newpose, part.type);
+              newpose.pose.position.x -= 0.5;
+              ur10.place(newpose.pose, agv);
+              } else {
+                  tasks.erase(
+                  tasks.begin()); // part place sucess thn remove from tasks list
+              }
           }
         }
         if (m.isHighOrder()) {
