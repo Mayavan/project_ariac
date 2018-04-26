@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
   bool run, result, priority_order;
   // private_node_handle.param("run", run, false);
   UR10_Control ur10(private_node_handle);
-  
+
   geometry_msgs::Pose target_pick, target_place;
   tf::StampedTransform transform;
 
@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
                 if (ur10.place(p.pose, agv))
                   if (m.checkQuality(agv)) {
                     geometry_msgs::PoseStamped newpose;
-                    newpose.header.frame_id = p.header.frame_id;
+                    newpose.header.frame_id = camera_frame;
                     newpose.pose = p.pose;
                     ur10.robust_pickup(newpose, part.type);
                     newpose.pose.position.x -= 0.5;
@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
               // if placed successfully check for quality
               if (m.checkQuality(agv)) {
               geometry_msgs::PoseStamped newpose;
-              newpose.header.frame_id = p.header.frame_id;
+              newpose.header.frame_id = camera_frame;
               newpose.pose = part.pose;
               ur10.robust_pickup(newpose, part.type);
               newpose.pose.position.x -= 0.5;
