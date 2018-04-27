@@ -69,6 +69,7 @@ int main(int argc, char **argv) {
         auto p = m.getPart(part.type);
         // pick up part
         result = ur10.robust_pickup(p, part.type); // max_try = 1
+
         ROS_INFO_STREAM("Pick up complete:" << result);
         // if success than place or pick another part
 
@@ -81,21 +82,9 @@ int main(int argc, char **argv) {
           // place
           result = ur10.robust_place(part.pose, camera_frame, agv);
           // place failed
-          if(!result) {
-            // check over tray
-            p.pose = m.getPose(part.pose, camera_frame);
-            auto v = m.look_over_tray(p.pose, part.type, agv);
-            // if tray has part than pick and place to correct postion
-            if (!v.empty()) {
-              ROS_INFO_STREAM("Incorrect postion on tray found");
-              if (ur10.robust_pickup(v.front(), part.type))
-                if (ur10.place(p.pose, agv))
-                  tasks.erase(tasks.begin());
-            }
-          } else {
-              // if placed successfully check for quality
-                  tasks.erase(
-                  tasks.begin()); // part place sucess thn remove from tasks list
+          if (result) {
+            tasks.erase(
+                tasks.begin()); // part place sucess thn remove from tasks list
           }
         }
         if (m.isHighOrder()) {
