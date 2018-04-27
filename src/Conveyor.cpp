@@ -48,15 +48,54 @@ Conveyor::~Conveyor() {}
 
 void Conveyor::callback(const conveyor::CameraMsg &msg) {
   current_time_ = ros::Time::now();
-  double dt = current_time_.toSec() - last_time_.toSec();
-  osrf_gear::LogicalCameraImage parts_on_conv;
+  dt_ = current_time_.toSec() - last_time_.toSec();
 
+  if (SPEED_ > 0.0 && msg->models.size() > 0) {
+
+    distances_.push_back(msg->models.front().pose.position.y);
+
+    if (distances_.size() == MAX_Element) {
+      SPEED_ = findAvgSpeed(distances_, dt_);
+      ROS_WARN_STREAM(SPEED_ << " speed detected");
+    }
+  } else if (SPEED_ < 0) {
+
+    osrf_gear::LogicalCameraImage parts_on_conv;
+
+    this->update(parts_on_conv);
+
+    for (const auto &part_in_view : msg->models) {
+      part_ = getPose(part_in_view.pose, "logical_camera_3_frame");
+      itr = inventory_.find(part_in_view.type);
+      bool found = false;
+      if (itr != inventory_.end()) {
+        for (const auto &part : itr->second) {
+          if (is_same(part_, part)) {
+            found = true;
+            break;
+          }
+        }
+      }
+      if (!found) {
+        inventory_[part_in_view.type].emplace_back(part_);
+        model_.type = part_in_view.type;
+        model_.pose = part_;
+        parts_on_conv.models.emplace_back(model_);
+      }
+    }
+    pub_part.publish(parts_on_conv);
+  }
+  counter++;
+  last_time_ = current_time_;
+}
+
+void Conveyor::update(osrf_gear::LogicalCameraImage &msg) {
   for (auto &part_list : inventory_) {
     ROS_INFO_STREAM(part_list.first << ":" << part_list.second.size());
     for (auto part = part_list.second.begin(); part != part_list.second.end();
          ++part) {
       // update the part postion in inventory
-      part->position.y += SPEED_ * dt;
+      part->position.y += SPEED_ * dt_;
       // conveyor only move in one direction(-ve y axis)
       if (part->position.y < -3.0) {
         // remove part if it's unrechable
@@ -65,33 +104,28 @@ void Conveyor::callback(const conveyor::CameraMsg &msg) {
         // else publish part
         model_.type = part_list.first;
         model_.pose = *part;
-        parts_on_conv.models.emplace_back(model_);
+        msg.models.emplace_back(model_);
       }
     }
   }
-  // TODO optimize no need to search over inventor
-  // else simple distance filter works (position < some const)
-  for (const auto &part_in_view : msg->models) {
-    part_ = getPose(part_in_view.pose, "logical_camera_3_frame");
-    itr = inventory_.find(part_in_view.type);
-    bool found = false;
-    if (itr != inventory_.end()) {
-      for (const auto &part : itr->second) {
-        if (is_same(part_, part)) {
-          found = true;
-          break;
-        }
-      }
-    }
-    if (!found) {
-      inventory_[part_in_view.type].emplace_back(part_);
-      model_.type = part_in_view.type;
-      model_.pose = part_;
-      parts_on_conv.models.emplace_back(model_);
-    }
-  }
-  // conveyor::CameraMsg partMsg = *msg;
-  pub_part.publish(parts_on_conv);
-  counter++;
-  last_time_ = current_time_;
 }
+
+double Conveyor::findAvgSpeed(const std::vector<double> &dist,
+                              const double &dt) {
+  size_t size = dist.size();
+  double *speeds = new double[size];
+
+  std::adjacent_difference(
+      dist.begin(), dist.end(), speeds,
+      [dt](const double &l, const double &r) { return (l - r) / dt; });
+
+  double sum = 0;
+  for (size_t i = 1; i < size; i++) {
+    sum += speeds[i];
+  }
+
+  delete[] speeds;
+  return sum / double(size - 1);
+}
+
+double Conveyor::getSpeed() { return SPEED_ < 0 ? SPEED_ : 0; }

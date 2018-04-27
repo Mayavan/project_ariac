@@ -34,10 +34,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 // ROS
 #include <geometry_msgs/Pose.h>
-#include <map>
-#include <memory>
 #include <osrf_gear/LogicalCameraImage.h>
 #include <ros/ros.h>
+
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -59,14 +60,21 @@ public:
   explicit Conveyor(const ros::NodeHandle &nh);
   ~Conveyor();
   void callback(const conveyor::CameraMsg &msg);
+  double getSpeed();
+
+protected:
+  double findAvgSpeed(const std::vector<double> &dist, const double &dt);
+  void update(osrf_gear::LogicalCameraImage &msg);
 
 private:
   ros::Publisher pub_part;
   ros::Time last_time_, current_time_;
   conveyor::Database inventory_;
-  double SPEED_ = -0.2;
+  double SPEED_ = 1.0, dt_;
 
   // callback
+  std::vector<double> distances_;
+  int MAX_Element = 11; // 10hz
   osrf_gear::Model model_;
   geometry_msgs::Pose part_;
   conveyor::Database::iterator itr;
