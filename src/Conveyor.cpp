@@ -49,6 +49,7 @@ Conveyor::~Conveyor() {}
 void Conveyor::callback(const conveyor::CameraMsg &msg) {
   current_time_ = ros::Time::now();
   dt_ = current_time_.toSec() - last_time_.toSec();
+  osrf_gear::LogicalCameraImage parts_on_conv;
 
   if (SPEED_ > 0.0 && msg->models.size() > 0) {
 
@@ -59,8 +60,6 @@ void Conveyor::callback(const conveyor::CameraMsg &msg) {
       ROS_WARN_STREAM(SPEED_ << " speed detected");
     }
   } else if (SPEED_ < 0) {
-
-    osrf_gear::LogicalCameraImage parts_on_conv;
 
     this->update(parts_on_conv);
 
@@ -83,8 +82,9 @@ void Conveyor::callback(const conveyor::CameraMsg &msg) {
         parts_on_conv.models.emplace_back(model_);
       }
     }
-    pub_part.publish(parts_on_conv);
   }
+  pub_part.publish(parts_on_conv);
+
   counter++;
   last_time_ = current_time_;
 }

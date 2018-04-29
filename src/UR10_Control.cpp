@@ -62,6 +62,7 @@ UR10_Control::UR10_Control(const ros::NodeHandle &server)
   ur10_.allowReplanning(true);
   ur10_.setGoalTolerance(0.01);
   ur10_.setEndEffector("vacuum_gripper_link");
+
   move(home_joint_angle_); // Home condition
 
   agv_waypoint_[0] = home_joint_angle_;
@@ -69,6 +70,10 @@ UR10_Control::UR10_Control(const ros::NodeHandle &server)
 
   agv_waypoint_[1] = home_joint_angle_;
   agv_waypoint_[1][1] = 4.71;
+
+  conveyer_joint_ = home_joint_angle_;
+  conveyer_joint_[0] = 1.0;
+  conveyer_joint_[1] = 0.0;
 
   ros::Duration(0.5).sleep();
   // Find pose of home position

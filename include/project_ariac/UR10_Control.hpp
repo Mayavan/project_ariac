@@ -101,8 +101,7 @@ private:
   moveit::planning_interface::MoveGroupInterface::Plan planner_;
 
   geometry_msgs::Pose target_, home_, agv_[2];
-  std::vector<double> home_joint_angle_;
-  std::vector<double> agv_waypoint_[2];
+  std::vector<double> home_joint_angle_, conveyer_joint_, agv_waypoint_[2];
 
   double z_offSet_;
   bool pickup_monitor_, place_monitor_;

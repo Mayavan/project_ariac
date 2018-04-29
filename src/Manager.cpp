@@ -43,14 +43,14 @@ Manager::Manager(const ros::NodeHandle &nh) {
   logical_camera_2_ =
       std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_2");
 
-  logical_camera_3_ =
-      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_3");
+  // logical_camera_3_ =
+  //     std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_3");
   logical_camera_4_ =
       std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_4");
-  logical_camera_5_ =
-      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_5");
-  logical_camera_6_ =
-      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_6");
+  // logical_camera_5_ =
+  //     std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_5");
+  // logical_camera_6_ =
+  //     std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_6");
 
   conveyor_ = std::make_shared<manager::Camera>(nh, "project_ariac/conveyer");
 
@@ -67,9 +67,11 @@ Manager::~Manager() { inventory_.clear(); }
 
 void Manager::checkInventory() {
   // Wait until camera see
+  //
+  // auto cameras = {logical_camera_3_, logical_camera_4_, logical_camera_5_,
+  //                 logical_camera_6_};
 
-  auto cameras = {logical_camera_3_, logical_camera_4_, logical_camera_5_,
-                  logical_camera_6_};
+  auto cameras = {logical_camera_4_};
 
   inventory_.clear();
   for (const auto &cam : cameras) {
@@ -99,7 +101,6 @@ void Manager::checkInventory() {
 
 geometry_msgs::PoseStamped Manager::getPart(const std::string &partType) {
   geometry_msgs::PoseStamped part;
-
   if (!inventory_[partType].empty()) {
     auto it = inventory_[partType].begin();
     part = *it;
