@@ -334,10 +334,11 @@ geometry_msgs::Pose UR10_Control::getAgvPosition(const int &agv) {
   return agv_[agv];
 }
 
-
 bool UR10_Control::checkQuality() {
-  if (quality_sensor_1_->isPopulated() || quality_sensor_2_->isPopulated())
-   return true;
+  auto message1 = quality_sensor_1_->getMessage(); 
+  auto message2 = quality_sensor_2_->getMessage();
+  if(message1->models.size() > 0 || message2->models.size() > 0)
+    return true;
   else
     return false;
 }

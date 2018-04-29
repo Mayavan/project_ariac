@@ -187,13 +187,12 @@ manager::OrderMsg Manager::getTheOrderMsg() {
     ros::spinOnce();
     rate_->sleep();
   }
-
   return order_manager_->getMessage();
 }
 
 bool Manager::isHighOrder() {
   if (order_manager_->getCounter() > 1) {
-    order_manager_->setCounter(1);
+    order_manager_->setCounter();
     return true;
   }
   return false;
