@@ -60,7 +60,7 @@ UR10_Control::UR10_Control(const ros::NodeHandle &server)
   ur10_.setPlanningTime(planning_time);
   ur10_.setNumPlanningAttempts(planning_attempt);
   ur10_.allowReplanning(true);
-  ur10_.setGoalTolerance(0.01);
+  // ur10_.setGoalTolerance(0.001);
   ur10_.setEndEffector("vacuum_gripper_link");
   move(home_joint_angle_); // Home condition
 
@@ -91,10 +91,10 @@ UR10_Control::UR10_Control(const ros::NodeHandle &server)
   gripper_sensor_ = nh_.subscribe("/ariac/gripper/state/", 10,
                                   &UR10_Control::gripperStatusCallback, this);
 
-  quality_sensor_1_ = 
+  quality_sensor_1_ =
       std::make_shared<UR10::Camera>(server, "/ariac/quality_control_sensor_1");
-  quality_sensor_2_ = 
-      std::make_shared<UR10::Camera>(server, "/ariac/quality_control_sensor_2");   
+  quality_sensor_2_ =
+      std::make_shared<UR10::Camera>(server, "/ariac/quality_control_sensor_2");
   ros::Duration(0.5).sleep();
 }
 
@@ -282,20 +282,23 @@ bool UR10_Control::place(const std::vector<geometry_msgs::Pose> &targets) {
   place_monitor_ = false;
   // should attach before openning
   // robot didn't drop part
-  if (checkQuality()) {
-      geometry_msgs::Pose newpose = targets.back();
-      newpose.position.x -= 0.5;
-      move({target_});
-  }
   ros::spinOnce();
   bool result = gripper_state_.attached;
-  gripperAction(UR10::Gripper_State::OPEN);
-  if (result) {
-    //   // ready for next part
-    //   // target_.position.z += 0.1;
-    move({target_, home_});
-    //   // move(home_joint_angle_);
+
+  if (checkQuality()) {
+    ROS_WARN("Faulty part detected!!");
+    target_.position.y = 2.5;
+    move({target_});
+    result = false;
   }
+  gripperAction(UR10::Gripper_State::OPEN);
+
+  if (result) {
+    move({target_, home_});
+  } else {
+    move({home_});
+  }
+
   return result;
 }
 
@@ -310,7 +313,7 @@ bool UR10_Control::robust_place(const geometry_msgs::Pose &target,
     }
     result = place(target_place, agv);
     max_try--;
-  } while (!result && max_try > 0);
+  } while (!result && max_try > 0 && gripper_state_.attached);
 
   if (!result) {
     ROS_WARN_STREAM("Robust Place failed..!");
@@ -331,12 +334,10 @@ geometry_msgs::Pose UR10_Control::getAgvPosition(const int &agv) {
   return agv_[agv];
 }
 
-bool UR10_Control::checkQuality() { 
-  if (quality_sensor_1_->isPopulated() || quality_sensor_2_->isPopulated()) {
-    quality_sensor_1_->setCounter(0);
-    quality_sensor_2_->setCounter(0);
-    return true;
-  }
+
+bool UR10_Control::checkQuality() {
+  if (quality_sensor_1_->isPopulated() || quality_sensor_2_->isPopulated())
+   return true;
   else
     return false;
 }
