@@ -59,9 +59,39 @@ Manager::Manager(const ros::NodeHandle &nh) {
   // Init order manager
   order_manager_ = std::make_shared<manager::Order>(nh, "/ariac/orders");
   ROS_DEBUG_STREAM("Manager is init..");
+  //tfBroadcastTimer = nh.createTimer(ros::Duration(0.05), &Manager::broadcast_tf_callback, this);
 }
 
 Manager::~Manager() { inventory_.clear(); }
+/**
+void Manager::broadcast_tf_callback(const ros::TimerEvent &event) {
+  static tf2_ros::StaticTransformBroadcaster static_broadcaster;
+  geometry_msgs::TransformStamped static_transformStamped;
+  static_transformStamped.header.stamp = ros::Time::now();
+  static_transformStamped.header.frame_id = "/world";
+  static_transformStamped.child_frame_id = "/logical_camera_1_kit_tray_1_frame";
+  static_transformStamped.transform.translation.x = 0.3;
+  static_transformStamped.transform.translation.y = 3.15;
+  static_transformStamped.transform.translation.z = 0.75;  
+  static_transformStamped.transform.rotation.x = 0;
+  static_transformStamped.transform.rotation.y = 0;
+  static_transformStamped.transform.rotation.z = 1;
+  static_transformStamped.transform.rotation.w = 0;
+  static_broadcaster.sendTransform(static_transformStamped);
+  /**
+  static_transformStamped.header.stamp = ros::Time::now();
+  static_transformStamped.header.frame_id = "/world";
+  static_transformStamped.child_frame_id = "/logical_camera_2_kit_tray_2_frame";
+  static_transformStamped.transform.translation.x = 0.3;
+  static_transformStamped.transform.translation.y = -3.15;
+  static_transformStamped.transform.translation.z = 0.75;  
+  static_transformStamped.transform.rotation.x = 0;
+  static_transformStamped.transform.rotation.y = 0;
+  static_transformStamped.transform.rotation.z = 1;
+  static_transformStamped.transform.rotation.w = 0;
+  static_broadcaster.sendTransform(static_transformStamped);
+  **/    
+//}
 
 void Manager::checkInventory() {
   // Wait until camera see

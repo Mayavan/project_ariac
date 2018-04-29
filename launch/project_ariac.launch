@@ -23,4 +23,8 @@
       <param name = "planning_attempt" value="40"/>
       <param name = "scene" value="$(arg scene_file)"/>
   </node>
+
+  <node name = "test_node"
+      pkg="project_ariac" type = "test_node" output = "screen">
+  </node>    
 </launch>

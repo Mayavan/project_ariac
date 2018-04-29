@@ -40,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ros/ros.h>
 #include <string>
 #include <vector>
-
+#include <tf2_ros/static_transform_broadcaster.h>
 #include "project_ariac/Interface.hpp"
 #include "project_ariac/Sensor.hpp"
 
@@ -59,10 +59,12 @@ public:
   explicit Conveyor(const ros::NodeHandle &nh);
   ~Conveyor();
   void callback(const conveyor::CameraMsg &msg);
+  void broadcast_tf_callback(const ros::TimerEvent &event);
 
 private:
   ros::Publisher pub_part;
   ros::Time last_time_, current_time_;
   conveyor::Database inventory_;
   double SPEED_ = 0.2;
+  ros::Timer tfBroadcastTimer;
 };

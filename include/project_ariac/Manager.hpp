@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ROS interface
 #include <geometry_msgs/Pose.h>
 #include <ros/ros.h>
+#include <tf2_ros/static_transform_broadcaster.h>
 // Ariac interface
 #include <osrf_gear/AGVControl.h>
 #include <osrf_gear/LogicalCameraImage.h>
@@ -102,6 +103,7 @@ public:
 
   bool isAgvReady(const int &no);
   int pick_agv();
+  //void broadcast_tf_callback(const ros::TimerEvent &event);
 
 private:
   NodePtr nh_;
@@ -112,4 +114,5 @@ private:
   manager::RatePtr rate_;
   manager::ArmStatePtr arm_state_;
   manager::Database inventory_;
+  //ros::Timer tfBroadcastTimer;
 };
