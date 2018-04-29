@@ -332,8 +332,11 @@ geometry_msgs::Pose UR10_Control::getAgvPosition(const int &agv) {
 }
 
 bool UR10_Control::checkQuality() { 
-  if (quality_sensor_1_->isPopulated() || quality_sensor_2_->isPopulated())
+  if (quality_sensor_1_->isPopulated() || quality_sensor_2_->isPopulated()) {
+    quality_sensor_1_->setCounter(0);
+    quality_sensor_2_->setCounter(0);
     return true;
+  }
   else
     return false;
 }

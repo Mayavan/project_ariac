@@ -193,7 +193,7 @@ manager::OrderMsg Manager::getTheOrderMsg() {
 
 bool Manager::isHighOrder() {
   if (order_manager_->getCounter() > 1) {
-    order_manager_->setCounter();
+    order_manager_->setCounter(1);
     return true;
   }
   return false;
