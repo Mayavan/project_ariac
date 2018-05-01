@@ -58,6 +58,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace UR10 {
 typedef osrf_gear::VacuumGripperState GripperState;
 typedef std::shared_ptr<planning_scene::PlanningScene> PlanningScenePtr;
+
 enum Gripper_State { OPEN = 0, CLOSE = 1 };
 } // namespace UR10
 
@@ -66,6 +67,8 @@ public:
   explicit UR10_Control(const ros::NodeHandle &server);
   ~UR10_Control();
   void gripperAction(UR10::Gripper_State action);
+  void publishJointsValue(const std::vector<double> &joints,
+                          std::size_t time = 1);
   bool move(const geometry_msgs::Pose &target);
   bool move(const std::vector<double> &target_joint);
   bool move(const std::vector<geometry_msgs::Pose> &waypoints,
@@ -94,11 +97,14 @@ private:
   ros::NodeHandle nh_;
 
   ros::Subscriber gripper_sensor_;
+  ros::Publisher joint_trajectory_publisher_;
   ros::ServiceClient gripper_;
   UR10::GripperState gripper_state_;
 
   moveit::planning_interface::MoveGroupInterface ur10_;
   moveit::planning_interface::MoveGroupInterface::Plan planner_;
+
+  trajectory_msgs::JointTrajectory joint_traj_msg_;
 
   geometry_msgs::Pose target_, home_, agv_[2];
   std::vector<double> home_joint_angle_, conveyer_joint_, agv_waypoint_[2];

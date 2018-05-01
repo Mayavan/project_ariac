@@ -32,12 +32,11 @@ int main(int argc, char **argv) {
   bool run, result, priority_order;
 
   UR10_Control ur10(private_node_handle);
-
+  // return 0;
   geometry_msgs::Pose target_pick, target_place;
   tf::StampedTransform transform;
 
   Manager m(node);
-
   // start
   m.start_competition();
   // update inventory

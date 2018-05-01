@@ -61,9 +61,14 @@ UR10_Control::UR10_Control(const ros::NodeHandle &server)
   ur10_.setNumPlanningAttempts(planning_attempt);
   ur10_.allowReplanning(true);
   ur10_.setGoalTolerance(0.01);
-  ur10_.setEndEffector("vacuum_gripper_link");
+  // ur10_.setEndEffector("vacuum_gripper_link");
 
-  move(home_joint_angle_); // Home condition
+  // init arm joint trajectory
+  joint_trajectory_publisher_ =
+      nh_.advertise<trajectory_msgs::JointTrajectory>("/ariac/arm/command", 10);
+
+  ros::Duration(1.0).sleep();
+  publishJointsValue(home_joint_angle_); // Home condition
 
   agv_waypoint_[0] = home_joint_angle_;
   agv_waypoint_[0][1] = 1.57;
@@ -95,6 +100,7 @@ UR10_Control::UR10_Control(const ros::NodeHandle &server)
       "/ariac/gripper/control");
   gripper_sensor_ = nh_.subscribe("/ariac/gripper/state/", 10,
                                   &UR10_Control::gripperStatusCallback, this);
+
   ros::Duration(0.5).sleep();
 }
 
@@ -335,82 +341,129 @@ geometry_msgs::Pose UR10_Control::getAgvPosition(const int &agv) {
   return agv_[agv];
 }
 
+void UR10_Control::publishJointsValue(const std::vector<double> &joints,
+                                      std::size_t time) {
+  joint_traj_msg_.joint_names = ur10_.getJointNames();
+  joint_traj_msg_.points.resize(1);
+  joint_traj_msg_.header.stamp = ros::Time::now();
+  joint_traj_msg_.points[0].positions = joints;
+  joint_traj_msg_.points[0].positions.push_back(0);
+  joint_traj_msg_.points[0].time_from_start = ros::Duration(time);
+  joint_trajectory_publisher_.publish(joint_traj_msg_);
+  ros::Duration(time).sleep(); // wait for finish
+  ros::spinOnce();
+}
+
 bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
                                    double speed) {
   ros::Time last_time, current_time;
   current_time = ros::Time::now();
-
+  //-----------------------------------------------------conveyor hover position
   auto conveyer_joint = home_joint_angle_;
-  conveyer_joint[0] = 1.0; // TODO should change as per target
+  conveyer_joint[0] = 2;
   conveyer_joint[1] = 0.0;
-  { move(conveyer_joint); }
 
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
+  move(conveyer_joint);
+  //--------------------------------------------------------------init variables
+  auto kinematic_model = ur10_.getRobotModel();
 
-  target_.position = target.position; // lock the orientation
-  target_.position.z += 0.5;
+  auto joint_model_group = kinematic_model->getJointModelGroup("manipulator");
 
-  last_time = current_time;
-  current_time = ros::Time::now();
-  target_.position.y += speed * (current_time.toSec() - last_time.toSec());
+  robot_state::RobotStatePtr kinematic_state(
+      new robot_state::RobotState(kinematic_model));
 
-  std::vector<geometry_msgs::Pose> targets = {target_};
-  //
-  // ROS_INFO_STREAM("Going to target");
-  // {
-  //   // cartesian planner Async spinner
-  //   // ros::AsyncSpinner spinner(1);
-  //   // spinner.start(); // limit the spinner
-  //   move(target_);
-  // }
-  // // move(target_);
-  // ROS_INFO_STREAM("Gripper on");
-  // // activate gripper
-  gripperAction(UR10::Gripper_State::CLOSE);
-  target_.position.z -= 0.5 - 1.9 * z_offSet_;
-  //
-  // // target_.position.z += z_offSet_;
-  last_time = current_time;
-  current_time = ros::Time::now();
-  target_.position.y +=
-      speed * (current_time.toSec() - last_time.toSec() + 5.0);
-  targets.push_back(target_);
+  Eigen::Vector3d reference_point_position(0.0, 0.0, 0.0);
+  Eigen::VectorXd error = Eigen::VectorXd::Zero(7);
 
-  pickup_monitor_ = true; // stop motion if part picked up
-  // {
-  //   // ros::AsyncSpinner spinner(1);
-  //   // spinner.start(); // limit the spinner
-  //   do {
-  //     ROS_INFO_STREAM("Grabbing");
-  //     current_time = ros::Time::now();
-  //     // update the part position
-  //     target_.position.y += speed * (current_time.toSec() - last_time.toSec()
-  //     +
-  //                                    AVERAGE_PLANNING_TIME);
-  //     // move
-  //     if (!move(target_))
-  //       return false;
-  //
-  //     ros::spinOnce(); // gripper state callback
-  //     last_time = current_time;
-  //     //  do until extreme point or part picked
-  //   } while (target.position.y > -2.0 && !gripper_state_.attached);
-  // }
+  Eigen::MatrixXd jacobian;
 
-  target_.position.y +=
-      speed * (current_time.toSec() - last_time.toSec() + 5.5);
-  targets.push_back(target_);
+  std::vector<double> joint_values;
+  double dt;
 
-  if (!move(targets, 1.0, 0.006))
-    return false;
+  Eigen::JacobiSVD<Eigen::MatrixXd> svd;
+  //--------------------------------------------------------------------------//
+  target_.position = target.position; // assign target
+  target_.position.z += 1.2 * z_offSet_;
 
-  pickup_monitor_ = false;
-  ROS_INFO_STREAM("out");
+  while (target_.position.y > -2 && !gripper_state_.attached) {
+    last_time = current_time;
+    current_time = ros::Time::now();
+    dt = (current_time.toSec() - last_time.toSec());
+    ROS_INFO_STREAM("Time:" << dt);
+    // keep updating target position
+    target_.position.y += speed * dt;
+    //-------------------------------------------------jacobian transpone method
+    kinematic_state->getJacobian(
+        joint_model_group,
+        kinematic_state->getLinkModel(
+            joint_model_group->getLinkModelNames().back()),
+        reference_point_position, jacobian, true);
+    // forward kinematic
+    auto end_effector = kinematic_state->getGlobalLinkTransform("ee_link");
+    Eigen::Quaterniond end_effector_quat(end_effector.rotation());
+    //  calculate error
+    error(0) = end_effector.translation()[0] - target_.position.x;
+    error(1) = end_effector.translation()[1] - target_.position.y;
+    error(2) = end_effector.translation()[2] - target_.position.z;
+    error(3) = end_effector_quat.x() - target_.orientation.x;
+    error(4) = end_effector_quat.y() - target_.orientation.y;
+    error(5) = end_effector_quat.z() - target_.orientation.z;
+    error(6) = end_effector_quat.w() - target_.orientation.w;
 
-  // goto safe palce
-  target_.position.z += 0.5;
-  move({target_}, 1.0, 0.1);
+    // TODO(BUG) get joint values form ariac/arm/state or ariac/joint_states
+
+    kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
+
+    for (const auto &joint : joint_values) {
+      logger += std::to_string(joint) + "|";
+    }
+    ROS_INFO_STREAM(logger);
+    // update = alpha x J' x  error
+    ROS_INFO_STREAM("jacobian\n" << jacobian);
+    ROS_INFO_STREAM("Error:\n" << error);
+
+    // auto update = 0.05 * jacobian.transpose() * error;
+
+    svd = jacobian.jacobiSvd(Eigen::ComputeFullU |
+                             Eigen::ComputeFullV); // find svd
+
+    // Init matrix with zero values
+    Eigen::MatrixXd singular_values_inv(jacobian.cols(), jacobian.rows());
+    singular_values_inv.setZero();
+
+    const auto &singular_values =
+        svd.singularValues(); // optimize the function call inside the
+                              // following for loop
+
+    // Pseudo inverse matrix with diagonal entries
+    for (auto index = 0; index < singular_values.size(); index++) {
+      if (singular_values(index) > Eigen::MatrixXd::Scalar{1e-4}) {
+        singular_values_inv(index, index) =
+            Eigen::MatrixXd::Scalar{1.0} / singular_values(index);
+      }
+    }
+    // Pseudo Inverse(J) = V * D+ * U
+    // compute the update = alpha * Pseudo Inverse(J) * error
+    auto update = 0.001 * svd.matrixV() * singular_values_inv *
+                  svd.matrixU().transpose() * error;
+
+    // update joints
+    ROS_INFO_STREAM("update:\n" << update);
+    std::size_t count = 0;
+    logger = "Joints|";
+    for (auto &joint : joint_values) {
+      joint -= update[count];
+      logger += std::to_string(joint) + "|";
+      count++;
+    }
+    ROS_INFO_STREAM(logger);
+    //-----------------------------------------------------------------------end
+    publishJointsValue(joint_values); // publish joints
+    // kinematic_state->setJointGroupPositions(joint_model_group, joint_values);
+    // kinematic_state->update();
+
+    ros::spin();
+  }
 
   ros::spinOnce();
   ros::Duration(0.5).sleep();
