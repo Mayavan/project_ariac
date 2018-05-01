@@ -95,6 +95,8 @@ UR10_Control::UR10_Control(const ros::NodeHandle &server)
   agv_[1].position.y += 0.5;
   agv_[1].orientation = home_.orientation;
 
+  arm_state_subscriber_ =
+      nh_.subscribe("/ariac/arm/state", 10, &UR10_Control::armStateCB, this);
   // Init the gripper control and feedback
   gripper_ = nh_.serviceClient<osrf_gear::VacuumGripperControl>(
       "/ariac/gripper/control");
@@ -354,17 +356,28 @@ void UR10_Control::publishJointsValue(const std::vector<double> &joints,
   ros::spinOnce();
 }
 
+void UR10_Control::armStateCB(
+    const control_msgs::JointTrajectoryControllerState::ConstPtr &state) {
+  arm_state_ = *state;
+}
+
 bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
                                    double speed) {
   ros::Time last_time, current_time;
   current_time = ros::Time::now();
-  //-----------------------------------------------------conveyor hover position
-  auto conveyer_joint = home_joint_angle_;
-  conveyer_joint[0] = 2;
-  conveyer_joint[1] = 0.0;
 
+  //-----------------------------------------------------conveyor hover
+  // position
+  std::vector<double> conveyer_joint = {1.02, -0.21, -1.23, 1.42,
+                                        4.58, 4.71,  -3.35};
+  // 1.0207236516480975, -0.20769761612831927,
+  // -1.2288392821481522, 1.4211063674502962,
+  // 4.577427677473649, 4.711329362829002, -3.3482435633217342
+  conveyer_joint[0] = target.position.y;
   move(conveyer_joint);
+
   //--------------------------------------------------------------init variables
+
   auto kinematic_model = ur10_.getRobotModel();
 
   auto joint_model_group = kinematic_model->getJointModelGroup("manipulator");
@@ -377,14 +390,13 @@ bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
 
   Eigen::MatrixXd jacobian;
 
-  std::vector<double> joint_values;
   double dt;
-
+  std::vector<double> joint_values;
   Eigen::JacobiSVD<Eigen::MatrixXd> svd;
   //--------------------------------------------------------------------------//
   target_.position = target.position; // assign target
   target_.position.z += 1.2 * z_offSet_;
-
+  target_.position.y += 1.0 * speed;
   while (target_.position.y > -2 && !gripper_state_.attached) {
     last_time = current_time;
     current_time = ros::Time::now();
@@ -392,28 +404,30 @@ bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
     ROS_INFO_STREAM("Time:" << dt);
     // keep updating target position
     target_.position.y += speed * dt;
-    //-------------------------------------------------jacobian transpone method
-    kinematic_state->getJacobian(
-        joint_model_group,
-        kinematic_state->getLinkModel(
-            joint_model_group->getLinkModelNames().back()),
-        reference_point_position, jacobian, true);
+    //------------------------------ -------------------jacobian transpone
+    // method
+    ros::spinOnce();
+    joint_values = arm_state_.desired.positions;
+    kinematic_state->setJointGroupPositions(joint_model_group, joint_values);
+    kinematic_state->update();
+
+    kinematic_state->getJacobian(joint_model_group,
+                                 kinematic_state->getLinkModel("ee_link"),
+                                 reference_point_position, jacobian, true);
     // forward kinematic
     auto end_effector = kinematic_state->getGlobalLinkTransform("ee_link");
+
     Eigen::Quaterniond end_effector_quat(end_effector.rotation());
-    //  calculate error
+
     error(0) = end_effector.translation()[0] - target_.position.x;
     error(1) = end_effector.translation()[1] - target_.position.y;
     error(2) = end_effector.translation()[2] - target_.position.z;
-    error(3) = end_effector_quat.x() - target_.orientation.x;
-    error(4) = end_effector_quat.y() - target_.orientation.y;
-    error(5) = end_effector_quat.z() - target_.orientation.z;
-    error(6) = end_effector_quat.w() - target_.orientation.w;
+    error(3) = end_effector_quat.x() - home_.orientation.x;
+    error(4) = end_effector_quat.y() - home_.orientation.y;
+    error(5) = end_effector_quat.z() - home_.orientation.z;
+    error(6) = end_effector_quat.w() - home_.orientation.w;
 
-    // TODO(BUG) get joint values form ariac/arm/state or ariac/joint_states
-
-    kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
-
+    std::string logger = "Joints|";
     for (const auto &joint : joint_values) {
       logger += std::to_string(joint) + "|";
     }
@@ -421,8 +435,6 @@ bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
     // update = alpha x J' x  error
     ROS_INFO_STREAM("jacobian\n" << jacobian);
     ROS_INFO_STREAM("Error:\n" << error);
-
-    // auto update = 0.05 * jacobian.transpose() * error;
 
     svd = jacobian.jacobiSvd(Eigen::ComputeFullU |
                              Eigen::ComputeFullV); // find svd
@@ -444,25 +456,20 @@ bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
     }
     // Pseudo Inverse(J) = V * D+ * U
     // compute the update = alpha * Pseudo Inverse(J) * error
-    auto update = 0.001 * svd.matrixV() * singular_values_inv *
+    auto update = 0.5 * svd.matrixV() * singular_values_inv *
                   svd.matrixU().transpose() * error;
 
     // update joints
     ROS_INFO_STREAM("update:\n" << update);
-    std::size_t count = 0;
+
     logger = "Joints|";
-    for (auto &joint : joint_values) {
-      joint -= update[count];
-      logger += std::to_string(joint) + "|";
-      count++;
+    for (size_t counter = 0; counter < 7; counter++) {
+      joint_values[counter] -= update[counter];
+      logger += std::to_string(joint_values[counter]) + "|";
     }
     ROS_INFO_STREAM(logger);
     //-----------------------------------------------------------------------end
-    publishJointsValue(joint_values); // publish joints
-    // kinematic_state->setJointGroupPositions(joint_model_group, joint_values);
-    // kinematic_state->update();
-
-    ros::spin();
+    publishJointsValue(joint_values, 0.8); // publish joints
   }
 
   ros::spinOnce();

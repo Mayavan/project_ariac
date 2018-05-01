@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
   bool run, result, priority_order;
 
   UR10_Control ur10(private_node_handle);
-  // return 0;
+
   geometry_msgs::Pose target_pick, target_place;
   tf::StampedTransform transform;
 
@@ -47,7 +47,6 @@ int main(int argc, char **argv) {
   // wait for order
 
   while (!ariac_order.empty()) {
-
     // BUG modifing local copy bug
     auto kits = ariac_order.back()->kits;
     // ur10.move(ur10.home_joint_angle_);

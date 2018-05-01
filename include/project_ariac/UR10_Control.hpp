@@ -35,18 +35,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <geometry_msgs/Pose.h>
 #include <ros/ros.h>
 
-#include <tf/transform_listener.h>
-#include <trajectory_msgs/JointTrajectory.h>
-
+#include <control_msgs/JointTrajectoryControllerState.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-
 #include <osrf_gear/VacuumGripperControl.h>
 #include <osrf_gear/VacuumGripperState.h>
+#include <tf/transform_listener.h>
+#include <trajectory_msgs/JointTrajectory.h>
 
 #include <memory>
 #include <string>
@@ -88,15 +87,19 @@ public:
   std::vector<double> getHomeJoint();
   geometry_msgs::Pose getHomePose();
   geometry_msgs::Pose getAgvPosition(const int &agv);
+  std::vector<double> home_joint_angle_, conveyer_joint_, agv_waypoint_[2];
 
 protected:
   void gripperStatusCallback(const UR10::GripperState &gripper_status);
+  void armStateCB(
+      const control_msgs::JointTrajectoryControllerState::ConstPtr &state);
+
   bool move();
 
 private:
   ros::NodeHandle nh_;
 
-  ros::Subscriber gripper_sensor_;
+  ros::Subscriber gripper_sensor_, arm_state_subscriber_;
   ros::Publisher joint_trajectory_publisher_;
   ros::ServiceClient gripper_;
   UR10::GripperState gripper_state_;
@@ -104,10 +107,10 @@ private:
   moveit::planning_interface::MoveGroupInterface ur10_;
   moveit::planning_interface::MoveGroupInterface::Plan planner_;
 
+  control_msgs::JointTrajectoryControllerState arm_state_;
   trajectory_msgs::JointTrajectory joint_traj_msg_;
 
   geometry_msgs::Pose target_, home_, agv_[2];
-  std::vector<double> home_joint_angle_, conveyer_joint_, agv_waypoint_[2];
 
   double z_offSet_;
   bool pickup_monitor_, place_monitor_;
