@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
         ROS_INFO_STREAM("Pickup :" << part.type);
         // is it over conveyor?
         if (p.header.frame_id == "world") {
-          result = ur10.conveyor_pickup(p.pose);
+          result = ur10.conveyor_pickup(p.pose, m.getConveyorSpeed());
         } else {
           result = ur10.robust_pickup(p, part.type); // max_try = 1
         }

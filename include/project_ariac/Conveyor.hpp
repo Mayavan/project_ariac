@@ -44,6 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "project_ariac/Interface.hpp"
 #include "project_ariac/Sensor.hpp"
+#include "project_ariac/getSpeed.h"
 
 namespace conveyor {
 /**
@@ -65,9 +66,12 @@ public:
 protected:
   double findAvgSpeed(const std::vector<double> &dist, const double &dt);
   void update(osrf_gear::LogicalCameraImage &msg);
+  bool findSpeed(project_ariac::getSpeed::Request &req,
+                 project_ariac::getSpeed::Response &res);
 
 private:
   ros::Publisher pub_part;
+  ros::ServiceServer service_;
   ros::Time last_time_, current_time_;
   conveyor::Database inventory_;
   double SPEED_ = 1.0, dt_;

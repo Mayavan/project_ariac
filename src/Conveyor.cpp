@@ -41,6 +41,8 @@ Conveyor::Conveyor(const ros::NodeHandle &nh) {
       nh_->subscribe("/ariac/logical_camera_3", 10, &Conveyor::callback, this);
   pub_part = nh_->advertise<osrf_gear::LogicalCameraImage>(
       "project_ariac/conveyer", 10);
+  service_ =
+      nh_->advertiseService("conveyer/getSpeed", &Conveyor::findSpeed, this);
   last_time_ = ros::Time::now();
 }
 
@@ -126,6 +128,12 @@ double Conveyor::findAvgSpeed(const std::vector<double> &dist,
 
   delete[] speeds;
   return sum / double(size - 1);
+}
+
+bool Conveyor::findSpeed(project_ariac::getSpeed::Request &req,
+                         project_ariac::getSpeed::Response &res) {
+  res.speed = getSpeed();
+  return true;
 }
 
 double Conveyor::getSpeed() { return SPEED_ < 0 ? SPEED_ : 0; }

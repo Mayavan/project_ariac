@@ -51,6 +51,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Custom abstraction
 #include "project_ariac/Interface.hpp"
 #include "project_ariac/Sensor.hpp"
+#include "project_ariac/getSpeed.h"
 
 namespace manager {
 // Custom types
@@ -102,6 +103,7 @@ public:
 
   bool isAgvReady(const int &no);
   int pick_agv();
+  double getConveyorSpeed();
 
 private:
   NodePtr nh_;

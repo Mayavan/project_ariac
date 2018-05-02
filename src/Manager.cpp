@@ -197,6 +197,21 @@ void Manager::send_order(std::string agv, std::string kit_id) const {
   }
 }
 
+double Manager::getConveyorSpeed() {
+  auto getspeed =
+      nh_->serviceClient<project_ariac::getSpeed>("/conveyer/getSpeed");
+  if (!getspeed.exists()) {
+    ROS_INFO("Waiting for the getSpeed client to be ready...");
+    getspeed.waitForExistence();
+    ROS_INFO("conveyor speed client is now ready.");
+  }
+  ROS_INFO("Requesting speed to complete pick...");
+  project_ariac::getSpeed srv;
+  getspeed.call(srv);
+
+  return srv.response.speed;
+}
+
 // void Manager::processCameraMsg(const CameraMsg& msg){
 //   return;
 // }

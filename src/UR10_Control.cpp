@@ -356,8 +356,7 @@ void UR10_Control::publishJointsValue(const std::vector<double> &joints,
   ros::spinOnce();
 }
 
-void UR10_Control::armStateCB(
-    const control_msgs::JointTrajectoryControllerState::ConstPtr &state) {
+void UR10_Control::armStateCB(const UR10::ArmStatePtr &state) {
   arm_state_ = *state;
 }
 

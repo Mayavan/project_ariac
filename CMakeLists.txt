@@ -14,20 +14,19 @@ find_package(catkin REQUIRED COMPONENTS
   tf2
   moveit_core
   moveit_ros_planning_interface
-  # message_generation
+  message_generation
   actionlib
 )
 
-# add_service_files(
-#   FILES
-#   pickup.srv
-#   place.srv
-# )
+add_service_files(
+  FILES
+  getSpeed.srv
+)
 
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs geometry_msgs#   move_base_msgs#   sensor_msgs#
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs #geometry_msgs#   move_base_msgs#   sensor_msgs#
+)
 
 
 catkin_package()

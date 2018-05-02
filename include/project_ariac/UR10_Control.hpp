@@ -57,7 +57,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace UR10 {
 typedef osrf_gear::VacuumGripperState GripperState;
 typedef std::shared_ptr<planning_scene::PlanningScene> PlanningScenePtr;
-
+typedef control_msgs::JointTrajectoryControllerState::ConstPtr ArmStatePtr;
 enum Gripper_State { OPEN = 0, CLOSE = 1 };
 } // namespace UR10
 
@@ -91,8 +91,7 @@ public:
 
 protected:
   void gripperStatusCallback(const UR10::GripperState &gripper_status);
-  void armStateCB(
-      const control_msgs::JointTrajectoryControllerState::ConstPtr &state);
+  void armStateCB(const UR10::ArmStatePtr &state);
 
   bool move();
 
