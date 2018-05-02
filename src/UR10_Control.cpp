@@ -375,7 +375,7 @@ bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
   // 4.577427677473649, 4.711329362829002, -3.3482435633217342
   conveyer_joint[0] = target.position.y;
   move(conveyer_joint);
-
+  gripperAction(UR10::Gripper_State::CLOSE);
   //--------------------------------------------------------------init variables
 
   auto kinematic_model = ur10_.getRobotModel();
@@ -395,14 +395,15 @@ bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
   Eigen::JacobiSVD<Eigen::MatrixXd> svd;
   //--------------------------------------------------------------------------//
   target_.position = target.position; // assign target
-  target_.position.z += 1.2 * z_offSet_;
+  target_.position.z += 1.1 * z_offSet_;
   target_.position.y += 1.0 * speed;
-  while (target_.position.y > -2 && !gripper_state_.attached) {
+  while (target_.position.y > -2.1 && !gripper_state_.attached) {
     last_time = current_time;
     current_time = ros::Time::now();
     dt = (current_time.toSec() - last_time.toSec());
-    ROS_INFO_STREAM("Time:" << dt);
+    // ROS_INFO_STREAM("Time:" << dt);
     // keep updating target position
+
     target_.position.y += speed * dt;
     //------------------------------ -------------------jacobian transpone
     // method
@@ -421,20 +422,21 @@ bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
 
     error(0) = end_effector.translation()[0] - target_.position.x;
     error(1) = end_effector.translation()[1] - target_.position.y;
-    error(2) = end_effector.translation()[2] - target_.position.z;
+    error(2) =
+        std::min(end_effector.translation()[2] - target_.position.z, 0.25);
     error(3) = end_effector_quat.x() - home_.orientation.x;
     error(4) = end_effector_quat.y() - home_.orientation.y;
     error(5) = end_effector_quat.z() - home_.orientation.z;
     error(6) = end_effector_quat.w() - home_.orientation.w;
 
-    std::string logger = "Joints|";
-    for (const auto &joint : joint_values) {
-      logger += std::to_string(joint) + "|";
-    }
-    ROS_INFO_STREAM(logger);
+    // std::string logger = "Joints|";
+    // for (const auto &joint : joint_values) {
+    //   logger += std::to_string(joint) + "|";
+    // }
+    // ROS_INFO_STREAM(logger);
     // update = alpha x J' x  error
-    ROS_INFO_STREAM("jacobian\n" << jacobian);
-    ROS_INFO_STREAM("Error:\n" << error);
+    // ROS_INFO_STREAM("jacobian\n" << jacobian);
+    // ROS_INFO_STREAM("Error:\n" << error);
 
     svd = jacobian.jacobiSvd(Eigen::ComputeFullU |
                              Eigen::ComputeFullV); // find svd
@@ -456,21 +458,23 @@ bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
     }
     // Pseudo Inverse(J) = V * D+ * U
     // compute the update = alpha * Pseudo Inverse(J) * error
-    auto update = 0.5 * svd.matrixV() * singular_values_inv *
-                  svd.matrixU().transpose() * error;
-
+    auto update = 0.9 * svd.matrixV() * singular_values_inv *
+                  svd.matrixU().transpose() * (error / dt);
     // update joints
-    ROS_INFO_STREAM("update:\n" << update);
-
-    logger = "Joints|";
+    // ROS_INFO_STREAM("update:\n" << update);
+    //
+    // logger = "Joints|";
     for (size_t counter = 0; counter < 7; counter++) {
       joint_values[counter] -= update[counter];
-      logger += std::to_string(joint_values[counter]) + "|";
+      // logger += std::to_string(joint_values[counter]) + "|";
     }
-    ROS_INFO_STREAM(logger);
+    // ROS_INFO_STREAM(logger);
     //-----------------------------------------------------------------------end
-    publishJointsValue(joint_values, 0.8); // publish joints
+    publishJointsValue(joint_values); // publish joints
   }
+
+  conveyer_joint[0] = target_.position.y;
+  publishJointsValue(conveyer_joint);
 
   ros::spinOnce();
   ros::Duration(0.5).sleep();
