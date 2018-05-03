@@ -62,6 +62,7 @@ typedef std::shared_ptr<planning_scene::PlanningScene> PlanningScenePtr;
 typedef osrf_gear::LogicalCameraImage::ConstPtr CameraMsg;
 typedef Sensor<CameraMsg> Camera;
 typedef std::shared_ptr<Camera> CameraPtr;
+typedef sensor_msgs::JointState JointState;
 enum Gripper_State { OPEN = 0, CLOSE = 1 };
 } // namespace UR10
 
@@ -76,6 +77,8 @@ public:
             double velocity_factor = 1.0, double eef_step = 0.05,
             double jump_threshold = 0.0);
 
+  void jointPosePublisher(const std::vector<double>& target_joint);
+
   bool pickup(const geometry_msgs::Pose &target);
   bool robust_pickup(const geometry_msgs::PoseStamped &pose,
                      std::string partType, int max_try = 5);
@@ -89,18 +92,22 @@ public:
   geometry_msgs::Pose getHomePose();
   geometry_msgs::Pose getAgvPosition(const int &agv);
   bool checkQuality();
+  void flip_pulley();
 
 protected:
   void gripperStatusCallback(const UR10::GripperState &gripper_status);
+  void jointStateCallback(const sensor_msgs::JointState& msg);
   bool move();
 
 private:
   ros::NodeHandle nh_;
 
-  ros::Subscriber gripper_sensor_;
+  ros::Subscriber gripper_sensor_, joint_state_sub;
   ros::ServiceClient gripper_;
+  ros::Publisher joint_trajectory_pub;
   UR10::GripperState gripper_state_;
   UR10::CameraPtr quality_sensor_1_, quality_sensor_2_;
+  UR10::JointState joint_state;
 
   moveit::planning_interface::MoveGroupInterface ur10_;
   moveit::planning_interface::MoveGroupInterface::Plan planner_;
