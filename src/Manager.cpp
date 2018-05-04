@@ -59,6 +59,7 @@ Manager::Manager(const ros::NodeHandle &nh) {
   // Init order manager
   order_manager_ = std::make_shared<manager::Order>(nh, "/ariac/orders");
   ROS_DEBUG_STREAM("Manager is init..");
+  //tfBroadcastTimer = nh.createTimer(ros::Duration(0.05), &Manager::broadcast_tf_callback, this);
 }
 
 Manager::~Manager() { inventory_.clear(); }

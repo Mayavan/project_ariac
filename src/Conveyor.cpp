@@ -42,6 +42,7 @@ Conveyor::Conveyor(const ros::NodeHandle &nh)
       nh_->subscribe("/ariac/logical_camera_1", 10, &Conveyor::callback, this);
   pub_part = nh_->advertise<osrf_gear::LogicalCameraImage>("project_ariac/conveyer",10);
   last_time_ = ros::Time::now();
+  tfBroadcastTimer = nh.createTimer(ros::Duration(0.05), &Conveyor::broadcast_tf_callback, this);
 }
 
 Conveyor::~Conveyor() {}
@@ -94,4 +95,29 @@ void Conveyor::callback(const conveyor::CameraMsg &msg) {
   pub_part.publish(parts_on_conv);
   counter += 1;
   last_time_ = current_time_;
+}
+
+void Conveyor::broadcast_tf_callback(const ros::TimerEvent &event) {
+  static tf2_ros::StaticTransformBroadcaster static_broadcaster;
+  geometry_msgs::TransformStamped static_transformStamped;
+  static_transformStamped.header.stamp = ros::Time::now();
+  static_transformStamped.header.frame_id = "/world";
+  static_transformStamped.child_frame_id = "/logical_camera_1_kit_tray_1_frame";
+  static_transformStamped.transform.translation.x = 0.3;
+  static_transformStamped.transform.translation.y = 3.15;
+  static_transformStamped.transform.translation.z = 0.75;  
+  static_transformStamped.transform.rotation.x = 0;
+  static_transformStamped.transform.rotation.y = 0;
+  static_transformStamped.transform.rotation.z = 1;
+  static_transformStamped.transform.rotation.w = 0;
+  static_broadcaster.sendTransform(static_transformStamped);
+  static_transformStamped.child_frame_id = "/logical_camera_2_kit_tray_2_frame";
+  static_transformStamped.transform.translation.x = 0.3;
+  static_transformStamped.transform.translation.y = -3.15;
+  static_transformStamped.transform.translation.z = 0.75;  
+  static_transformStamped.transform.rotation.x = 0;
+  static_transformStamped.transform.rotation.y = 0;
+  static_transformStamped.transform.rotation.z = 1;
+  static_transformStamped.transform.rotation.w = 0;
+  static_broadcaster.sendTransform(static_transformStamped);    
 }
