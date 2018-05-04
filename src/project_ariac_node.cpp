@@ -72,11 +72,11 @@ int main(int argc, char **argv) {
 
         ROS_INFO_STREAM("Pick up complete:" << result);
         // if success than place or pick another part
-        if (part.type == "pulley_part" && result){
+        if (part.type == "pulley_part" && result) {
           ROS_INFO_STREAM("Flipping pulley part:");
           ur10.flip_pulley();
         }
-          
+
         std::string camera_frame =
             agv ? "logical_camera_" + std::to_string(CAMERA_OVER_TRAY_TWO) +
                       "_kit_tray_2_frame"

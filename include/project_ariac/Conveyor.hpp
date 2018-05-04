@@ -33,16 +33,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #pragma once
 // ROS
+#include "project_ariac/Interface.hpp"
+#include "project_ariac/Sensor.hpp"
 #include <geometry_msgs/Pose.h>
 #include <map>
 #include <memory>
 #include <osrf_gear/LogicalCameraImage.h>
 #include <ros/ros.h>
 #include <string>
-#include <vector>
 #include <tf2_ros/static_transform_broadcaster.h>
-#include "project_ariac/Interface.hpp"
-#include "project_ariac/Sensor.hpp"
+#include <vector>
 
 namespace conveyor {
 /**

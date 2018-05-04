@@ -94,8 +94,8 @@ UR10_Control::UR10_Control(const ros::NodeHandle &server)
   // Init the arm control and feedback
   joint_trajectory_pub =
       nh_.advertise<trajectory_msgs::JointTrajectory>("/ariac/arm/command", 10);
-  joint_state_sub = nh_.subscribe(
-      "/ariac/joint_states", 10, &UR10_Control::jointStateCallback, this);
+  joint_state_sub = nh_.subscribe("/ariac/joint_states", 10,
+                                  &UR10_Control::jointStateCallback, this);
 
   quality_sensor_1_ =
       std::make_shared<UR10::Camera>(server, "/ariac/quality_control_sensor_1");
@@ -189,8 +189,18 @@ bool UR10_Control::pickup(const geometry_msgs::Pose &target) {
   target_.position.z += 0.4;
   waypoints.push_back(target_);
 
-  target_.position.z = target.position.z + z_offSet_;
-  waypoints.push_back(target_);
+  auto t = target_;
+  double roll, pitch, yaw, dummy;
+  tf::Matrix3x3(tf::Quaternion(target.orientation.x, target.orientation.y,
+                               target.orientation.z, target.orientation.w))
+      .getRPY(roll, pitch, yaw);
+  tf::Matrix3x3(tf::Quaternion(home_.orientation.x, home_.orientation.y,
+                               home_.orientation.z, home_.orientation.w))
+      .getRPY(roll, pitch, dummy);
+  t.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
+
+  t.position.z = target.position.z + z_offSet_;
+  waypoints.push_back(t);
 
   gripperAction(UR10::Gripper_State::CLOSE);
   // should stop after part is being picked
@@ -343,15 +353,15 @@ geometry_msgs::Pose UR10_Control::getAgvPosition(const int &agv) {
 }
 
 bool UR10_Control::checkQuality() {
-  auto message1 = quality_sensor_1_->getMessage(); 
+  auto message1 = quality_sensor_1_->getMessage();
   auto message2 = quality_sensor_2_->getMessage();
-  if(message1->models.size() > 0 || message2->models.size() > 0)
+  if (message1->models.size() > 0 || message2->models.size() > 0)
     return true;
   else
     return false;
 }
 
-void UR10_Control::jointPosePublisher(const std::vector<double>& target_joint) {
+void UR10_Control::jointPosePublisher(const std::vector<double> &target_joint) {
 
   trajectory_msgs::JointTrajectory target_msg;
   target_msg.header.stamp = ros::Time::now();
@@ -364,81 +374,104 @@ void UR10_Control::jointPosePublisher(const std::vector<double>& target_joint) {
     target_msg.points[0].positions[i] = target_joint[i];
   }
 
-  target_msg.points[0].time_from_start = ros::Duration(1.0);
-
-  ROS_INFO_STREAM("Populated jointPosePublisher msg:\n" << target_msg);
+  target_msg.points[0].time_from_start = ros::Duration(1);
 
   joint_trajectory_pub.publish(target_msg);
-  ros::Duration(1.4).sleep();
+  ros::Duration(1.2).sleep();
 }
 
-void UR10_Control::jointStateCallback(const sensor_msgs::JointState& msg) {
+void UR10_Control::jointStateCallback(const sensor_msgs::JointState &msg) {
   joint_state = msg;
 }
 
 void UR10_Control::flip_pulley() {
-  std::vector<double> wp1 = {2.243808742159853, 0.16169273710449183, -1.7694873064883794, 1.598143032604276, 5.038274633936634, 4.73679572242765, 0.03684661763998598};
-  std::vector<double> wp2 = {2.3289613974599206, 0.2426605618523817, -1.5408388030807245, 1.5960846338517403, 5.449625032208066, 4.752812594024332, 0.010975675089456516};
+  std::vector<double> wp1 = {2.243808742159853,   0.16169273710449183,
+                             -1.7694873064883794, 1.598143032604276,
+                             5.038274633936634,   4.73679572242765,
+                             0.03684661763998598};
+
+  std::vector<double> wp2 = {2.3289613974599206,  0.2426605618523817,
+                             -1.5408388030807245, 1.5960846338517403,
+                             5.449625032208066,   4.752812594024332,
+                             0.010975675089456516};
+
   // Place from first side
-  std::vector<double> wp3 = {2.360798294157197, 0.1859866186964006, -1.2283683580430704, 1.2047579602040495, 5.103293282235604, 4.362086570708567, -0.004970785204934103};
+  std::vector<double> wp3 = {2.360798294157197,    0.1859866186964006,
+                             -1.2283683580430704,  1.2047579602040495,
+                             5.103293282235604,    4.362086570708567,
+                             -0.004970785204934103};
+
   // Step back
-  std::vector<double> wp4 = {2.34880743534395, 0.22548707985445882, -1.2257864526747948, 1.2079535887800814, 5.119238786846012, 4.365146771837186, -0.005380604795716337};
-  
-  //arm turnout
-  std::vector<double> wp5 = {2.287224870686398, 0.19767039827869637, -1.1912042032635934, 0.9013114658623609, 5.149520202311113, 4.441786081024084, -0.016770811960842735};
+  std::vector<double> wp4 = {2.34880743534395,     0.22548707985445882,
+                             -1.2257864526747948,  1.2079535887800814,
+                             5.119238786846012,    4.365146771837186,
+                             -0.005380604795716337};
 
-  //arm side
-  std::vector<double> wp6 = {2.2007938731566874, 0.15170497864935303, -1.1437623223726359, 0.7628351932910915, 5.187959682960177, 4.363291305553873, -0.02214615241800555};
+  // arm turnout
+  std::vector<double> wp5 = {2.287224870686398,    0.19767039827869637,
+                             -1.1912042032635934,  0.9013114658623609,
+                             5.149520202311113,    4.441786081024084,
+                             -0.016770811960842735};
 
-  //slide
-  std::vector<double> wp7 = {2.2026058386721594, -0.06668689898951524, -1.1287201901052004, 0.6902596139987214, 5.169831897643232, 4.290738006613766, -0.025356202879857292};
+  // arm side
+  std::vector<double> wp6 = {2.2007938731566874,  0.15170497864935303,
+                             -1.1437623223726359, 0.7628351932910915,
+                             5.187959682960177,   4.363291305553873,
+                             -0.02214615241800555};
 
-  //move in
-  std::vector<double> wp8 = {2.6579125554873855, -0.47715362642037573, -1.2916730129504108, 0.9353993159140144, 4.882354647966725, 4.535688334508005, -0.016017252904395818};
+  // slide
+  std::vector<double> wp7 = {2.2026058386721594,   -0.06668689898951524,
+                             -1.1287201901052004,  0.6902596139987214,
+                             5.169831897643232,    4.290738006613766,
+                             -0.025356202879857292};
 
-  //rotate gripper
-  std::vector<double> wp9 = {2.175422344537143, -0.9009763234963939, -1.0619403346946434, 1.2862107544049977, 5.13440554453595, 1.288540182420343, 0.0036720685817206444};
+  // move in
+  std::vector<double> wp8 = {2.6579125554873855,   -0.47715362642037573,
+                             -1.2916730129504108,  0.9353993159140144,
+                             4.882354647966725,    4.535688334508005,
+                             -0.016017252904395818};
 
-  //close in
-  std::vector<double> wp10 = {1.9989557267823095, -0.32759369047971226, -1.0162950170243512, 1.321540017454888, 5.2655885748216145, 1.3238577029887244, 0.0024484093827004116};
+  // rotate gripper
+  std::vector<double> wp9 = {2.175422344537143,    -0.9009763234963939,
+                             -1.0619403346946434,  1.2862107544049977,
+                             5.13440554453595,     1.288540182420343,
+                             0.0036720685817206444};
 
-  //touch
-  std::vector<double> wp11 = {1.9914384552160271, -0.303274804021313, -1.0140756352714888, 1.322913316324362, 5.2709040697580845, 1.325063365888818, 0.0022407007024041192};
+  // close in
+  std::vector<double> wp10 = {1.9989557267823095,   -0.32759369047971226,
+                              -1.0162950170243512,  1.321540017454888,
+                              5.2655885748216145,   1.3238577029887244,
+                              0.0024484093827004116};
 
+  // touch
+  std::vector<double> wp11 = {1.9914384552160271,   -0.303274804021313,
+                              -1.0140756352714888,  1.322913316324362,
+                              5.2709040697580845,   1.325063365888818,
+                              0.0022407007024041192};
 
   ROS_INFO_STREAM("Before move no plan..");
-  jointPosePublisher(wp1);
-  jointPosePublisher(wp2);
-  jointPosePublisher(wp3);
+
+  for (auto i : {wp1, wp2, wp3}) {
+    jointPosePublisher(i);
+  }
 
   gripperAction(UR10::Gripper_State::OPEN);
-  ros::Duration(2.0).sleep();
 
-  jointPosePublisher(wp4);
-  jointPosePublisher(wp5);
-  jointPosePublisher(wp6);
-  jointPosePublisher(wp7);
-  jointPosePublisher(wp8);
-  jointPosePublisher(wp9);
-  jointPosePublisher(wp10);
-  jointPosePublisher(wp11);
-  
+  for (auto i : {wp4, wp5, wp6, wp7, wp8, wp9, wp10, wp11}) {
+    jointPosePublisher(i);
+  }
+
   gripperAction(UR10::Gripper_State::CLOSE);
 
   ros::spinOnce();
-  ros::Duration(2.0).sleep();
-  ros::spinOnce();
+
   int max_try = 5;
   int try_count = 0;
-  while ((!gripper_state_.attached) && (max_try > try_count) )
-  {
+  while ((!gripper_state_.attached) && (max_try > try_count)) {
     wp11[1] += 0.01;
     jointPosePublisher(wp11);
-    try_count ++;
-    ros::spinOnce();
+    try_count++;
     ros::Duration(0.5).sleep();
     ros::spinOnce();
   }
-
 }
-

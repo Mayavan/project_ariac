@@ -37,11 +37,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Manager::Manager(const ros::NodeHandle &nh) {
   nh_ = std::make_shared<ros::NodeHandle>(nh);
   rate_ = std::make_shared<ros::Rate>(0.5);
-  // Init Cameras
-  logical_camera_1_ =
-      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_1");
-  logical_camera_2_ =
-      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_2");
+  // // Init Cameras
+  // logical_camera_1_ =
+  //     std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_1");
+  // logical_camera_2_ =
+  //     std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_2");
 
   logical_camera_3_ =
       std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_3");
@@ -59,7 +59,8 @@ Manager::Manager(const ros::NodeHandle &nh) {
   // Init order manager
   order_manager_ = std::make_shared<manager::Order>(nh, "/ariac/orders");
   ROS_DEBUG_STREAM("Manager is init..");
-  //tfBroadcastTimer = nh.createTimer(ros::Duration(0.05), &Manager::broadcast_tf_callback, this);
+  // tfBroadcastTimer = nh.createTimer(ros::Duration(0.05),
+  // &Manager::broadcast_tf_callback, this);
 }
 
 Manager::~Manager() { inventory_.clear(); }

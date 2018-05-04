@@ -45,9 +45,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 
+#include <osrf_gear/LogicalCameraImage.h>
 #include <osrf_gear/VacuumGripperControl.h>
 #include <osrf_gear/VacuumGripperState.h>
-#include <osrf_gear/LogicalCameraImage.h>
 
 #include <memory>
 #include <string>
@@ -77,7 +77,7 @@ public:
             double velocity_factor = 1.0, double eef_step = 0.05,
             double jump_threshold = 0.0);
 
-  void jointPosePublisher(const std::vector<double>& target_joint);
+  void jointPosePublisher(const std::vector<double> &target_joint);
 
   bool pickup(const geometry_msgs::Pose &target);
   bool robust_pickup(const geometry_msgs::PoseStamped &pose,
@@ -96,7 +96,7 @@ public:
 
 protected:
   void gripperStatusCallback(const UR10::GripperState &gripper_status);
-  void jointStateCallback(const sensor_msgs::JointState& msg);
+  void jointStateCallback(const sensor_msgs::JointState &msg);
   bool move();
 
 private:

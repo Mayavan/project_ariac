@@ -35,14 +35,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Conveyor::Conveyor() {}
 
-Conveyor::Conveyor(const ros::NodeHandle &nh)
- {
+Conveyor::Conveyor(const ros::NodeHandle &nh) {
   nh_ = std::make_shared<ros::NodeHandle>(nh);
   sensor_subscriber_ =
       nh_->subscribe("/ariac/logical_camera_1", 10, &Conveyor::callback, this);
-  pub_part = nh_->advertise<osrf_gear::LogicalCameraImage>("project_ariac/conveyer",10);
+  pub_part = nh_->advertise<osrf_gear::LogicalCameraImage>(
+      "project_ariac/conveyer", 10);
   last_time_ = ros::Time::now();
-  tfBroadcastTimer = nh.createTimer(ros::Duration(0.05), &Conveyor::broadcast_tf_callback, this);
+  tfBroadcastTimer = nh.createTimer(ros::Duration(0.05),
+                                    &Conveyor::broadcast_tf_callback, this);
 }
 
 Conveyor::~Conveyor() {}
@@ -50,7 +51,7 @@ Conveyor::~Conveyor() {}
 void Conveyor::callback(const conveyor::CameraMsg &msg) {
   current_time_ = ros::Time::now();
   double dt = current_time_.toSec() - last_time_.toSec();
-  osrf_gear::LogicalCameraImage parts_on_conv ;
+  osrf_gear::LogicalCameraImage parts_on_conv;
   osrf_gear::Model model;
 
   for (auto &part_list : inventory_) {
@@ -62,12 +63,12 @@ void Conveyor::callback(const conveyor::CameraMsg &msg) {
       part->position.y -= SPEED_ * dt;
       model.type = part_list.first;
       model.pose = *part;
-	
+
       if (part->position.y < -3.0) {
         part_list.second.erase(part);
-       } else {
-       parts_on_conv.models.emplace_back(model);
-	   }
+      } else {
+        parts_on_conv.models.emplace_back(model);
+      }
     }
   }
 
@@ -88,10 +89,9 @@ void Conveyor::callback(const conveyor::CameraMsg &msg) {
       model.type = part_in_view.type;
       model.pose = P;
       parts_on_conv.models.emplace_back(model);
+    }
   }
-  
-  }
-  //conveyor::CameraMsg partMsg = *msg; 
+  // conveyor::CameraMsg partMsg = *msg;
   pub_part.publish(parts_on_conv);
   counter += 1;
   last_time_ = current_time_;
@@ -105,7 +105,7 @@ void Conveyor::broadcast_tf_callback(const ros::TimerEvent &event) {
   static_transformStamped.child_frame_id = "/logical_camera_1_kit_tray_1_frame";
   static_transformStamped.transform.translation.x = 0.3;
   static_transformStamped.transform.translation.y = 3.15;
-  static_transformStamped.transform.translation.z = 0.75;  
+  static_transformStamped.transform.translation.z = 0.75;
   static_transformStamped.transform.rotation.x = 0;
   static_transformStamped.transform.rotation.y = 0;
   static_transformStamped.transform.rotation.z = 1;
@@ -114,10 +114,10 @@ void Conveyor::broadcast_tf_callback(const ros::TimerEvent &event) {
   static_transformStamped.child_frame_id = "/logical_camera_2_kit_tray_2_frame";
   static_transformStamped.transform.translation.x = 0.3;
   static_transformStamped.transform.translation.y = -3.15;
-  static_transformStamped.transform.translation.z = 0.75;  
+  static_transformStamped.transform.translation.z = 0.75;
   static_transformStamped.transform.rotation.x = 0;
   static_transformStamped.transform.rotation.y = 0;
   static_transformStamped.transform.rotation.z = 1;
   static_transformStamped.transform.rotation.w = 0;
-  static_broadcaster.sendTransform(static_transformStamped);    
+  static_broadcaster.sendTransform(static_transformStamped);
 }
