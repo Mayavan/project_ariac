@@ -23,4 +23,3 @@
   <depend>message_generation</depend>
   <depend>actionlib</depend>
 </package>
-

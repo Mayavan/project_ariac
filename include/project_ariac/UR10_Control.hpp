@@ -35,9 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <geometry_msgs/Pose.h>
 #include <ros/ros.h>
 
-#include <tf/transform_listener.h>
-#include <trajectory_msgs/JointTrajectory.h>
-
+#include <control_msgs/JointTrajectoryControllerState.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
@@ -48,6 +46,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <osrf_gear/LogicalCameraImage.h>
 #include <osrf_gear/VacuumGripperControl.h>
 #include <osrf_gear/VacuumGripperState.h>
+#include <tf/transform_listener.h>
+#include <trajectory_msgs/JointTrajectory.h>
 
 #include <memory>
 #include <string>
@@ -63,6 +63,7 @@ typedef osrf_gear::LogicalCameraImage::ConstPtr CameraMsg;
 typedef Sensor<CameraMsg> Camera;
 typedef std::shared_ptr<Camera> CameraPtr;
 typedef sensor_msgs::JointState JointState;
+typedef control_msgs::JointTrajectoryControllerState::ConstPtr ArmStatePtr;
 enum Gripper_State { OPEN = 0, CLOSE = 1 };
 } // namespace UR10
 
@@ -71,6 +72,8 @@ public:
   explicit UR10_Control(const ros::NodeHandle &server);
   ~UR10_Control();
   void gripperAction(UR10::Gripper_State action);
+  void publishJointsValue(const std::vector<double> &joints,
+                          std::size_t time = 1);
   bool move(const geometry_msgs::Pose &target);
   bool move(const std::vector<double> &target_joint);
   bool move(const std::vector<geometry_msgs::Pose> &waypoints,
@@ -82,6 +85,7 @@ public:
   bool pickup(const geometry_msgs::Pose &target);
   bool robust_pickup(const geometry_msgs::PoseStamped &pose,
                      std::string partType, int max_try = 5);
+  bool conveyor_pickup(const geometry_msgs::Pose &target, double speed = -0.2);
 
   bool place(const std::vector<geometry_msgs::Pose> &targets);
   bool place(geometry_msgs::Pose target, int agv = 0);
@@ -93,16 +97,19 @@ public:
   geometry_msgs::Pose getAgvPosition(const int &agv);
   bool checkQuality();
   void flip_pulley();
+  std::vector<double> home_joint_angle_, conveyer_joint_, agv_waypoint_[2];
 
 protected:
   void gripperStatusCallback(const UR10::GripperState &gripper_status);
   void jointStateCallback(const sensor_msgs::JointState &msg);
+  void armStateCB(const UR10::ArmStatePtr &state);
   bool move();
 
 private:
   ros::NodeHandle nh_;
 
-  ros::Subscriber gripper_sensor_, joint_state_sub;
+  ros::Subscriber gripper_sensor_, arm_state_subscriber_, joint_state_sub;
+  ros::Publisher joint_trajectory_publisher_;
   ros::ServiceClient gripper_;
   ros::Publisher joint_trajectory_pub;
   UR10::GripperState gripper_state_;
@@ -112,9 +119,10 @@ private:
   moveit::planning_interface::MoveGroupInterface ur10_;
   moveit::planning_interface::MoveGroupInterface::Plan planner_;
 
+  control_msgs::JointTrajectoryControllerState arm_state_;
+  trajectory_msgs::JointTrajectory joint_traj_msg_;
+
   geometry_msgs::Pose target_, home_, agv_[2];
-  std::vector<double> home_joint_angle_;
-  std::vector<double> agv_waypoint_[2];
 
   double z_offSet_;
   bool pickup_monitor_, place_monitor_;

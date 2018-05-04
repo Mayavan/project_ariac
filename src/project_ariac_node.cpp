@@ -12,7 +12,7 @@
 #include <ros/ros.h>
 #include <vector>
 /**
- * @TODO(ravib)
+ * TODO(ravib)
  * pick up moving part
  * choose agv method for multitasking
  * refactor high level logic
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
   ros::NodeHandle private_node_handle("~");
 
   bool run, result, priority_order;
-  // private_node_handle.param("run", run, false);
+
   UR10_Control ur10(private_node_handle);
 
   geometry_msgs::Pose target_pick, target_place;
@@ -45,10 +45,9 @@ int main(int argc, char **argv) {
   std::vector<osrf_gear::KitObject> pending_task;
   std::vector<manager::OrderMsg> ariac_order = {m.getTheOrderMsg()};
   // wait for order
-  // for (const auto &kit : ariac_order->kits) {
-  //   auto tasks = kit.objects;
-  priority_order = false;
+
   while (!ariac_order.empty()) {
+    // BUG modifing local copy bug
     auto kits = ariac_order.back()->kits;
     // ur10.move(ur10.home_joint_angle_);
     while (!kits.empty()) {
@@ -65,10 +64,21 @@ int main(int argc, char **argv) {
       // Do until every part is placed
       while (!tasks.empty()) {
         auto part = tasks.front();
-        ROS_INFO_STREAM("Pickup :" << part.type);
-        auto p = m.getPart(part.type);
+
+        geometry_msgs::PoseStamped p;
+
+        do {
+          ROS_INFO_STREAM("Finding :" << part.type);
+          p = m.getPart(part.type);
+        } while (p.header.frame_id == "invalid");
         // pick up part
-        result = ur10.robust_pickup(p, part.type); // max_try = 1
+        ROS_INFO_STREAM("Pickup :" << part.type);
+        // is it over conveyor?
+        if (p.header.frame_id == "world") {
+          result = ur10.conveyor_pickup(p.pose, m.getConveyorSpeed());
+        } else {
+          result = ur10.robust_pickup(p, part.type); // max_try = 1
+        }
 
         ROS_INFO_STREAM("Pick up complete:" << result);
         // if success than place or pick another part

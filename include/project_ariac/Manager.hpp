@@ -51,6 +51,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Custom abstraction
 #include "project_ariac/Interface.hpp"
 #include "project_ariac/Sensor.hpp"
+#include "project_ariac/getSpeed.h"
 
 namespace manager {
 // Custom types
@@ -102,11 +103,12 @@ public:
 
   bool isAgvReady(const int &no);
   int pick_agv();
+  double getConveyorSpeed();
 
 private:
   NodePtr nh_;
   manager::CameraPtr logical_camera_1_, logical_camera_2_, logical_camera_3_,
-      logical_camera_4_, logical_camera_5_, logical_camera_6_;
+      logical_camera_4_, logical_camera_5_, logical_camera_6_, conveyor_;
   manager::AgvPtr agv_[2];
   manager::OrderPtr order_manager_;
   manager::RatePtr rate_;

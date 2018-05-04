@@ -43,14 +43,16 @@ Manager::Manager(const ros::NodeHandle &nh) {
   // logical_camera_2_ =
   //     std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_2");
 
-  logical_camera_3_ =
-      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_3");
+  // logical_camera_3_ =
+  //     std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_3");
   logical_camera_4_ =
       std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_4");
-  logical_camera_5_ =
-      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_5");
-  logical_camera_6_ =
-      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_6");
+  // logical_camera_5_ =
+  //     std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_5");
+  // logical_camera_6_ =
+  //     std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_6");
+
+  conveyor_ = std::make_shared<manager::Camera>(nh, "project_ariac/conveyer");
 
   agv_[0] = std::make_shared<manager::Agv>(nh, "/ariac/agv1/state");
   agv_[1] = std::make_shared<manager::Agv>(nh, "/ariac/agv2/state");
@@ -67,9 +69,11 @@ Manager::~Manager() { inventory_.clear(); }
 
 void Manager::checkInventory() {
   // Wait until camera see
+  //
+  // auto cameras = {logical_camera_3_, logical_camera_4_, logical_camera_5_,
+  //                 logical_camera_6_};
 
-  auto cameras = {logical_camera_3_, logical_camera_4_, logical_camera_5_,
-                  logical_camera_6_};
+  auto cameras = {logical_camera_4_};
 
   inventory_.clear();
   for (const auto &cam : cameras) {
@@ -98,13 +102,29 @@ void Manager::checkInventory() {
 }
 
 geometry_msgs::PoseStamped Manager::getPart(const std::string &partType) {
-  // geometry_msgs::PoseStamped part = inventory_[partType].front();
-  // assumption inventory has enough part
-  if (inventory_[partType].empty())
-    checkInventory();
-  auto it = inventory_[partType].begin();
-  geometry_msgs::PoseStamped part = *it;
-  inventory_[partType].erase(it);
+  geometry_msgs::PoseStamped part;
+  if (!inventory_[partType].empty()) {
+    auto it = inventory_[partType].begin();
+    part = *it;
+    inventory_[partType].erase(it);
+    ROS_INFO_STREAM("part found on bin");
+    return part;
+  } else {
+    for (const auto &itr_part : conveyor_->getMessage()->models) {
+      if (itr_part.type == partType) {
+        // find pickable part
+        if (itr_part.pose.position.y > 0 && itr_part.pose.position.y < 2.0) {
+          part.pose = itr_part.pose;
+          part.header.frame_id = "world";
+          ROS_INFO_STREAM("part found on conveyor");
+          return part;
+        }
+      }
+    }
+  }
+  ROS_WARN_STREAM("part not found");
+
+  part.header.frame_id = "invalid";
   return part;
 }
 /// Start the competition by waiting for and then calling the start ROS
@@ -177,6 +197,21 @@ void Manager::send_order(std::string agv, std::string kit_id) const {
   if (!srv.response.success) {
     ROS_ERROR_STREAM("Failed to send");
   }
+}
+
+double Manager::getConveyorSpeed() {
+  auto getspeed =
+      nh_->serviceClient<project_ariac::getSpeed>("/conveyer/getSpeed");
+  if (!getspeed.exists()) {
+    ROS_INFO("Waiting for the getSpeed client to be ready...");
+    getspeed.waitForExistence();
+    ROS_INFO("conveyor speed client is now ready.");
+  }
+  ROS_INFO("Requesting speed to complete pick...");
+  project_ariac::getSpeed srv;
+  getspeed.call(srv);
+
+  return srv.response.speed;
 }
 
 // void Manager::processCameraMsg(const CameraMsg& msg){

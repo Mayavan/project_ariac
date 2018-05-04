@@ -38,9 +38,11 @@ Conveyor::Conveyor() {}
 Conveyor::Conveyor(const ros::NodeHandle &nh) {
   nh_ = std::make_shared<ros::NodeHandle>(nh);
   sensor_subscriber_ =
-      nh_->subscribe("/ariac/logical_camera_1", 10, &Conveyor::callback, this);
+      nh_->subscribe("/ariac/logical_camera_3", 10, &Conveyor::callback, this);
   pub_part = nh_->advertise<osrf_gear::LogicalCameraImage>(
       "project_ariac/conveyer", 10);
+  service_ =
+      nh_->advertiseService("conveyer/getSpeed", &Conveyor::findSpeed, this);
   last_time_ = ros::Time::now();
   tfBroadcastTimer = nh.createTimer(ros::Duration(0.05),
                                     &Conveyor::broadcast_tf_callback, this);
@@ -50,52 +52,93 @@ Conveyor::~Conveyor() {}
 
 void Conveyor::callback(const conveyor::CameraMsg &msg) {
   current_time_ = ros::Time::now();
-  double dt = current_time_.toSec() - last_time_.toSec();
+  dt_ = current_time_.toSec() - last_time_.toSec();
   osrf_gear::LogicalCameraImage parts_on_conv;
-  osrf_gear::Model model;
 
+  if (SPEED_ > 0.0 && msg->models.size() > 0) {
+
+    distances_.push_back(msg->models.front().pose.position.y);
+
+    if (distances_.size() == MAX_Element) {
+      SPEED_ = findAvgSpeed(distances_, dt_);
+      ROS_WARN_STREAM(SPEED_ << " speed detected");
+    }
+  } else if (SPEED_ < 0) {
+
+    this->update(parts_on_conv);
+
+    for (const auto &part_in_view : msg->models) {
+      part_ = getPose(part_in_view.pose, "logical_camera_3_frame");
+      itr = inventory_.find(part_in_view.type);
+      bool found = false;
+      if (itr != inventory_.end()) {
+        for (const auto &part : itr->second) {
+          if (is_same(part_, part)) {
+            found = true;
+            break;
+          }
+        }
+      }
+      if (!found) {
+        inventory_[part_in_view.type].emplace_back(part_);
+        model_.type = part_in_view.type;
+        model_.pose = part_;
+        parts_on_conv.models.emplace_back(model_);
+      }
+    }
+  }
+  pub_part.publish(parts_on_conv);
+
+  counter++;
+  last_time_ = current_time_;
+}
+
+void Conveyor::update(osrf_gear::LogicalCameraImage &msg) {
   for (auto &part_list : inventory_) {
     ROS_INFO_STREAM(part_list.first << ":" << part_list.second.size());
     for (auto part = part_list.second.begin(); part != part_list.second.end();
          ++part) {
       // update the part postion in inventory
+      part->position.y += SPEED_ * dt_;
       // conveyor only move in one direction(-ve y axis)
-      part->position.y -= SPEED_ * dt;
-      model.type = part_list.first;
-      model.pose = *part;
-
       if (part->position.y < -3.0) {
+        // remove part if it's unrechable
         part_list.second.erase(part);
       } else {
-        parts_on_conv.models.emplace_back(model);
+        // else publish part
+        model_.type = part_list.first;
+        model_.pose = *part;
+        msg.models.emplace_back(model_);
       }
     }
+  }
+}
+
+double Conveyor::findAvgSpeed(const std::vector<double> &dist,
+                              const double &dt) {
+  size_t size = dist.size();
+  double *speeds = new double[size];
+
+  std::adjacent_difference(
+      dist.begin(), dist.end(), speeds,
+      [dt](const double &l, const double &r) { return (l - r) / dt; });
+
+  double sum = 0;
+  for (size_t i = 1; i < size; i++) {
+    sum += speeds[i];
   }
 
-  for (const auto &part_in_view : msg->models) {
-    auto P = getPose(part_in_view.pose, "logical_camera_1_frame");
-    auto itr = inventory_.find(part_in_view.type);
-    bool found = false;
-    if (itr != inventory_.end()) {
-      for (const auto &part : itr->second) {
-        if (is_same(P, part)) {
-          found = true;
-          break;
-        }
-      }
-    }
-    if (!found) {
-      inventory_[part_in_view.type].emplace_back(P);
-      model.type = part_in_view.type;
-      model.pose = P;
-      parts_on_conv.models.emplace_back(model);
-    }
-  }
-  // conveyor::CameraMsg partMsg = *msg;
-  pub_part.publish(parts_on_conv);
-  counter += 1;
-  last_time_ = current_time_;
+  delete[] speeds;
+  return sum / double(size - 1);
 }
+
+bool Conveyor::findSpeed(project_ariac::getSpeed::Request &req,
+                         project_ariac::getSpeed::Response &res) {
+  res.speed = getSpeed();
+  return true;
+}
+
+double Conveyor::getSpeed() { return SPEED_ < 0 ? SPEED_ : 0; }
 
 void Conveyor::broadcast_tf_callback(const ros::TimerEvent &event) {
   static tf2_ros::StaticTransformBroadcaster static_broadcaster;

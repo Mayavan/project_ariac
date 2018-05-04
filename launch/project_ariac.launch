@@ -4,6 +4,7 @@
   <arg name="test" default="false"/>
 
   <include file="$(find project_ariac)/launch/ur10_moveit.launch"/>
+  <node name="conveyor" pkg="project_ariac" type="node"/>
 
   <node name = "project_ariac_node"
       pkg="project_ariac" type = "project_ariac_node" output = "screen">
@@ -24,7 +25,4 @@
       <param name = "scene" value="$(arg scene_file)"/>
   </node>
 
-  <node name = "test_node"
-      pkg="project_ariac" type = "test_node" output = "screen">
-  </node>    
 </launch>
