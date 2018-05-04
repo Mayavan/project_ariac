@@ -60,7 +60,7 @@ UR10_Control::UR10_Control(const ros::NodeHandle &server)
   ur10_.setPlanningTime(planning_time);
   ur10_.setNumPlanningAttempts(planning_attempt);
   ur10_.allowReplanning(true);
-  ur10_.setGoalTolerance(0.01);
+  // ur10_.setGoalTolerance(0.01);
   // ur10_.setEndEffector("vacuum_gripper_link");
 
   // init arm joint trajectory
@@ -268,6 +268,9 @@ bool UR10_Control::robust_pickup(const geometry_msgs::PoseStamped &pose,
   auto target_pick = getPose(pose);
   target_pick.pose.position.z += 0.002;
   do {
+    if (max_try < 2) {
+      move(home_joint_angle_);
+    }
     // PoseStamped had header and getPose will give pose with world
     ROS_INFO_STREAM("Pick up try:" << max_try);
     target_pick.pose.position.z -= 0.002;

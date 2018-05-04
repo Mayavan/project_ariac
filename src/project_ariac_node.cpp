@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   ros::NodeHandle node;
   ros::NodeHandle private_node_handle("~");
 
-  bool run, result, priority_order;
+  bool run, result, priority_order = false;
 
   UR10_Control ur10(private_node_handle);
 
@@ -75,23 +75,24 @@ int main(int argc, char **argv) {
         ROS_INFO_STREAM("Pickup :" << part.type);
         // is it over conveyor?
         if (p.header.frame_id == "world") {
-          result = ur10.conveyor_pickup(p.pose, m.getConveyorSpeed());
+          // result = ur10.conveyor_pickup(p.pose, m.getConveyorSpeed());
         } else {
           result = ur10.robust_pickup(p, part.type); // max_try = 1
         }
 
         ROS_INFO_STREAM("Pick up complete:" << result);
         // if success than place or pick another part
-        if (part.type == "pulley_part" && result) {
-          ROS_INFO_STREAM("Flipping pulley part:");
-          ur10.flip_pulley();
-        }
+        // if (part.type == "pulley_part" && result) {
+        //   ROS_INFO_STREAM("Flipping pulley part:");
+        //   ur10.flip_pulley();
+        // }
 
         std::string camera_frame =
             agv ? "logical_camera_" + std::to_string(CAMERA_OVER_TRAY_TWO) +
                       "_kit_tray_2_frame"
                 : "logical_camera_" + std::to_string(CAMERA_OVER_TRAY_ONE) +
                       "_kit_tray_1_frame";
+        ROS_WARN_STREAM(camera_frame);
         if (result) {
           // place
           result = ur10.robust_place(part.pose, camera_frame, agv);
@@ -114,6 +115,7 @@ int main(int argc, char **argv) {
       m.send_order("/ariac/agv" + std::to_string(agv + 1),
                    kits.front().kit_type);
       kits.erase(kits.begin());
+      ros::Duration(5.0).sleep();
       // ros::Duration(20.0).sleep(); // wait for agv to avilable
     }
     if (!priority_order) {

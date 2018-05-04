@@ -77,14 +77,14 @@ public:
   bool move(const geometry_msgs::Pose &target);
   bool move(const std::vector<double> &target_joint);
   bool move(const std::vector<geometry_msgs::Pose> &waypoints,
-            double velocity_factor = 1.0, double eef_step = 0.05,
+            double velocity_factor = 1.0, double eef_step = 0.01,
             double jump_threshold = 0.0);
 
   void jointPosePublisher(const std::vector<double> &target_joint);
 
   bool pickup(const geometry_msgs::Pose &target);
   bool robust_pickup(const geometry_msgs::PoseStamped &pose,
-                     std::string partType, int max_try = 5);
+                     std::string partType, int max_try = 3);
   bool conveyor_pickup(const geometry_msgs::Pose &target, double speed = -0.2);
 
   bool place(const std::vector<geometry_msgs::Pose> &targets);

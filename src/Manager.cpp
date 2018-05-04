@@ -43,14 +43,14 @@ Manager::Manager(const ros::NodeHandle &nh) {
   // logical_camera_2_ =
   //     std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_2");
 
-  // logical_camera_3_ =
-  //     std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_3");
+  logical_camera_3_ =
+      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_3");
   logical_camera_4_ =
       std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_4");
-  // logical_camera_5_ =
-  //     std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_5");
-  // logical_camera_6_ =
-  //     std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_6");
+  logical_camera_5_ =
+      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_5");
+  logical_camera_6_ =
+      std::make_shared<manager::Camera>(nh, "/ariac/logical_camera_6");
 
   conveyor_ = std::make_shared<manager::Camera>(nh, "project_ariac/conveyer");
 
@@ -70,10 +70,8 @@ Manager::~Manager() { inventory_.clear(); }
 void Manager::checkInventory() {
   // Wait until camera see
   //
-  // auto cameras = {logical_camera_3_, logical_camera_4_, logical_camera_5_,
-  //                 logical_camera_6_};
-
-  auto cameras = {logical_camera_4_};
+  auto cameras = {logical_camera_3_, logical_camera_4_, logical_camera_5_,
+                  logical_camera_6_};
 
   inventory_.clear();
   for (const auto &cam : cameras) {
@@ -125,6 +123,7 @@ geometry_msgs::PoseStamped Manager::getPart(const std::string &partType) {
   ROS_WARN_STREAM("part not found");
 
   part.header.frame_id = "invalid";
+
   return part;
 }
 /// Start the competition by waiting for and then calling the start ROS

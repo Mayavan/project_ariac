@@ -38,7 +38,7 @@ Conveyor::Conveyor() {}
 Conveyor::Conveyor(const ros::NodeHandle &nh) {
   nh_ = std::make_shared<ros::NodeHandle>(nh);
   sensor_subscriber_ =
-      nh_->subscribe("/ariac/logical_camera_3", 10, &Conveyor::callback, this);
+      nh_->subscribe("/ariac/logical_camera_1", 10, &Conveyor::callback, this);
   pub_part = nh_->advertise<osrf_gear::LogicalCameraImage>(
       "project_ariac/conveyer", 10);
   service_ =

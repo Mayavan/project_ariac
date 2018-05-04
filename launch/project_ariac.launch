@@ -20,8 +20,8 @@
       <param name = "wrist_3_joint" value = "0.0" />
       <param name = "z_offSet_" value = "0.023" />
       <param name = "planner" value ="RRTConnectkConfigDefault"/>
-      <param name = "planning_time" value="400"/>
-      <param name = "planning_attempt" value="40"/>
+      <param name = "planning_time" value="10"/>
+      <param name = "planning_attempt" value="10"/>
       <param name = "scene" value="$(arg scene_file)"/>
   </node>
 
