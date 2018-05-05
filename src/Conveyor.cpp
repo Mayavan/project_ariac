@@ -43,9 +43,9 @@ Conveyor::Conveyor(const ros::NodeHandle &nh) {
       "project_ariac/conveyer", 10);
   service_ =
       nh_->advertiseService("conveyer/getSpeed", &Conveyor::findSpeed, this);
-  last_time_ = ros::Time::now();
   tfBroadcastTimer = nh.createTimer(ros::Duration(0.05),
                                     &Conveyor::broadcast_tf_callback, this);
+  last_time_ = ros::Time::now();
 }
 
 Conveyor::~Conveyor() {}
@@ -68,7 +68,7 @@ void Conveyor::callback(const conveyor::CameraMsg &msg) {
     this->update(parts_on_conv);
 
     for (const auto &part_in_view : msg->models) {
-      part_ = getPose(part_in_view.pose, "logical_camera_3_frame");
+      part_ = getPose(part_in_view.pose, "logical_camera_1_frame");
       itr = inventory_.find(part_in_view.type);
       bool found = false;
       if (itr != inventory_.end()) {
