@@ -456,8 +456,9 @@ bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
 
     error(0) = end_effector.translation()[0] - target_.position.x;
     error(1) = end_effector.translation()[1] - target_.position.y;
-    error(2) =
-        std::min(end_effector.translation()[2] - target_.position.z, 0.25);
+    error(2) = end_effector.translation()[2] - target_.position.z;
+    // error(2) =
+    //     std::min(end_effector.translation()[2] - target_.position.z, 0.25);
     error(3) = end_effector_quat.x() - home_.orientation.x;
     error(4) = end_effector_quat.y() - home_.orientation.y;
     error(5) = end_effector_quat.z() - home_.orientation.z;
@@ -492,7 +493,7 @@ bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
     }
     // Pseudo Inverse(J) = V * D+ * U
     // compute the update = alpha * Pseudo Inverse(J) * error
-    auto update = 0.9 * svd.matrixV() * singular_values_inv *
+    auto update = svd.matrixV() * singular_values_inv *
                   svd.matrixU().transpose() * (error / dt);
     // update joints
     // ROS_INFO_STREAM("update:\n" << update);
