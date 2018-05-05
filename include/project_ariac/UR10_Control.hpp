@@ -90,7 +90,7 @@ public:
   bool place(const std::vector<geometry_msgs::Pose> &targets);
   bool place(geometry_msgs::Pose target, int agv = 0);
   bool robust_place(const geometry_msgs::Pose &target, const std::string &ref,
-                    int agv = 0, int max_try = 5);
+                    int agv = 0, int max_try = 2);
 
   std::vector<double> getHomeJoint();
   geometry_msgs::Pose getHomePose();

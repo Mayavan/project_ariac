@@ -45,20 +45,9 @@ Conveyor::Conveyor(const ros::NodeHandle &nh) {
       "project_ariac/conveyer", 10);
   service_ =
       nh_->advertiseService("conveyer/getSpeed", &Conveyor::findSpeed, this);
+  tfBroadcastTimer = nh.createTimer(ros::Duration(0.05),
+                                    &Conveyor::broadcast_tf_callback, this);
   last_time_ = ros::Time::now();
-  tfBroadcastTimer = nh.createTimer(ros::Duration(0.05), &Conveyor::broadcast_tf_callback, this);
-  /**
-  std::string src = "bin5_frame";
-  std::string target;
-  std::ofstream output;
-  output.open("/home/harish/Config2x3.csv");
-  for (int i = 0; i < 6; i++) {
-    target = "logical_camera_6_gear_part_" + std::to_string(i+1) + "_frame";
-    geometry_msgs::Pose pose = getTransfrom(src,target);
-    output << pose.position.x << "," << pose.position.y << "," << pose.position.z << std::endl;
-  }
-  output.close();
-  **/
 }
 
 Conveyor::~Conveyor() {}
@@ -81,7 +70,7 @@ void Conveyor::callback(const conveyor::CameraMsg &msg) {
     this->update(parts_on_conv);
 
     for (const auto &part_in_view : msg->models) {
-      part_ = getPose(part_in_view.pose, "logical_camera_3_frame");
+      part_ = getPose(part_in_view.pose, "logical_camera_1_frame");
       itr = inventory_.find(part_in_view.type);
       bool found = false;
       if (itr != inventory_.end()) {

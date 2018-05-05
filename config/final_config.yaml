@@ -1,0 +1,10 @@
+
+arm:
+  type: ur10
+sensors:
+  # over conveyor
+  logical_camera_1:
+    type: logical_camera
+    pose:
+      xyz: [1.21, 2.5, 1.624088]
+      rpy: [0, 'pi/2', 0]

@@ -56,9 +56,7 @@ Manager::~Manager() { inventory_.clear(); }
 
 
 void Manager::initialize() {
-  config1.push_back({0, 0, 0, 0, 0, 1, 0});
   config1.push_back({-0.0666047, 0.199258, 0.00536679, 0, 0, 1, 0});
-  config1.push_back({0.0668974, 0.201598, 0.00413541, 0, 0, 1, 0});
   config1.push_back({0.0668974, 0.201598, 0.00413541, 0, 0, 1, 0});
   config1.push_back({-0.199113, 0.0678644, 00446563, 0, 0, 1, 0});
   config1.push_back({-0.0672372, 0.0647241, 0.00591626, 0, 0, 1, 0});
@@ -72,7 +70,6 @@ void Manager::initialize() {
   config1.push_back({-0.0675575,  -0.200984, 0.00419706, 0, 0, 1, 0});
   config1.push_back({0.0660187, -0.200665, 0.00626196, 0, 0, 1, 0});
   config1.push_back({0.200801,  -0.200029, 0.00566913, 0, 0, 1, 0});
-  config2.push_back({0, 0, 0, 0, 0, 1, 0});
   config2.push_back({-0.0670033, 0.199958,  0.00363661, 0, 0, 1, 0});
   config2.push_back({0.0651708, 0.198379,  0.00375392, 0, 0, 1, 0});
   config2.push_back({0.199832,  0.199404,  0.00503828, 0, 0, 1, 0});
@@ -102,7 +99,6 @@ void Manager::Inventory() {
     geometry_msgs::PoseStamped pos;
     if(i == 0) {
       for (const auto &part : config1) {
-        pos.header.frame_id = "world";
         pos.pose.position.x = part[0];
         pos.pose.position.y = part[1];
         pos.pose.position.z = part[2];
@@ -115,7 +111,6 @@ void Manager::Inventory() {
     }
     if(i == 1) {
       for (const auto &part : config2) {
-        pos.header.frame_id = "world";
         pos.pose.position.x = part[0];
         pos.pose.position.y = part[1];
         pos.pose.position.z = part[2];
@@ -128,7 +123,6 @@ void Manager::Inventory() {
     }
     if(i == 2) {
       for (const auto &part : config3) {
-        pos.header.frame_id = "world";
         pos.pose.position.x = part[0];
         pos.pose.position.y = part[1];
         pos.pose.position.z = part[2];
@@ -141,7 +135,6 @@ void Manager::Inventory() {
     }
     if(i == 3) {
       for (const auto &part : config4) {
-        pos.header.frame_id = "world";
         pos.pose.position.x = part[0];
         pos.pose.position.y = part[1];
         pos.pose.position.z = part[2];

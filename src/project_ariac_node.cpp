@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
         // is it over conveyor?
 
         if (pos.header.frame_id == "world") {
-          // result = ur10.conveyor_pickup(p.pose, m.getConveyorSpeed());
+          result = ur10.conveyor_pickup(pos.pose, m.getConveyorSpeed());
         } else {
             result = ur10.robust_pickup(pos, part.type); // max_try = 1
         }

@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   control_msgs
   geometry_msgs
   tf2
-  moveit_core
   moveit_ros_planning_interface
   message_generation
   actionlib
