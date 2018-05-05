@@ -50,9 +50,9 @@ int main(int argc, char **argv) {
     // BUG modifing local copy bug
     auto kits = ariac_order.back()->kits;
     // ur10.move(ur10.home_joint_angle_);
+
     while (!kits.empty()) {
-      // TODO(ravib)
-      // not proper but its work around for competition
+      auto time_track = ros::Time::now();
       // refactor needo
       auto &tasks = kits.front().objects;
       // int agv = m.pick_agv();
@@ -64,8 +64,10 @@ int main(int argc, char **argv) {
       // Do until every part is placed
       while (!tasks.empty()) {
         auto part = tasks.front();
-
         geometry_msgs::PoseStamped p;
+
+        if (ros::Time::now().toSec() - time_track.toSec() > 400)
+          break;
 
         do {
           ROS_INFO_STREAM("Finding :" << part.type);
@@ -76,7 +78,8 @@ int main(int argc, char **argv) {
         // is it over conveyor?
 
         if (p.header.frame_id == "world") {
-          result = ur10.conveyor_pickup(p.pose, m.getConveyorSpeed());
+          result =
+              ur10.conveyor_pickup(p.pose, part.type, m.getConveyorSpeed());
         } else {
           result = ur10.robust_pickup(p, part.type); // max_try = 1
         }

@@ -85,7 +85,8 @@ public:
   bool pickup(const geometry_msgs::Pose &target);
   bool robust_pickup(const geometry_msgs::PoseStamped &pose,
                      std::string partType, int max_try = 3);
-  bool conveyor_pickup(const geometry_msgs::Pose &target, double speed = -0.2);
+  bool conveyor_pickup(const geometry_msgs::Pose &target, std::string partType,
+                       double speed = -0.2);
 
   bool place(const std::vector<geometry_msgs::Pose> &targets);
   bool place(geometry_msgs::Pose target, int agv = 0);

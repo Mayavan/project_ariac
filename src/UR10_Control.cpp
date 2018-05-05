@@ -237,7 +237,7 @@ bool UR10_Control::pickup(const geometry_msgs::Pose &target) {
   target_.position.z = home_.position.z;
   if (!move({target_})) {
     move(home_joint_angle_); // reset position
-    return false;
+    // return false;
   }
   // should attach after execution
   // it means, robot pick up part
@@ -386,9 +386,19 @@ void UR10_Control::armStateCB(
 }
 
 bool UR10_Control::conveyor_pickup(const geometry_msgs::Pose &target,
-                                   double speed) {
+                                   std::string partType, double speed) {
   ros::Time last_time, current_time;
   current_time = ros::Time::now();
+
+  if (partType == "gear_part" || partType == "piston_rod_part") {
+    z_offSet_ = 0.02;
+  } else if (partType == "disk_part") {
+    z_offSet_ = 0.025;
+  } else if (partType == "pulley_part") {
+    z_offSet_ = 0.085;
+  } else {
+    z_offSet_ = 0.038;
+  }
 
   //-----------------------------------------------------conveyor hover
   // position
