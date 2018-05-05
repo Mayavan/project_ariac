@@ -38,6 +38,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Ariac interface
 #include <osrf_gear/AGVControl.h>
 #include <osrf_gear/LogicalCameraImage.h>
+#include <osrf_gear/GetMaterialLocations.h>
+#include <osrf_gear/StorageUnit.h>
 #include <osrf_gear/Order.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/String.h>
@@ -73,7 +75,7 @@ typedef std::shared_ptr<Agv> AgvPtr;
 /**
  * @brief      map < part_type, list of poseStamped>
  */
-typedef std::map<std::string, std::vector<geometry_msgs::PoseStamped>> Database;
+typedef std::map<int, std::vector<geometry_msgs::PoseStamped>> Database;
 } // namespace manager
 
 /**
@@ -83,7 +85,7 @@ class Manager : public Interface {
 public:
   explicit Manager(const ros::NodeHandle &nh);
   ~Manager();
-  void checkInventory();
+  void Inventory();
   manager::Database processedOrder();
   geometry_msgs::PoseStamped getPart(const std::string &partType);
   // ARIAC interface
@@ -91,7 +93,7 @@ public:
   void end_competition(std::string topic = "/ariac/end_competition") const;
   void send_order(std::string agv = "/ariac/agv1",
                   std::string kit_id = "order_0_kit_0") const;
-
+  std::string get_BinId(std::string part, std::string topic = "/ariac/material_locations") const;
   manager::OrderMsg getTheOrderMsg();
   bool isHighOrder();
   std::vector<geometry_msgs::PoseStamped>
@@ -106,6 +108,7 @@ public:
   double getConveyorSpeed();
 
 private:
+  void initialize();
   NodePtr nh_;
   manager::CameraPtr logical_camera_1_, logical_camera_2_, logical_camera_3_,
       logical_camera_4_, logical_camera_5_, logical_camera_6_, conveyor_;
@@ -114,4 +117,6 @@ private:
   manager::RatePtr rate_;
   manager::ArmStatePtr arm_state_;
   manager::Database inventory_;
+  std::vector<std::vector<double>> config1, config2, config3, config4;
+  int configType;
 };

@@ -13,6 +13,7 @@ int main(int argc, char **argv) {
   ros::NodeHandle node;
   ROS_INFO_STREAM("Init");
   Conveyor con(node);
+  ROS_INFO_STREAM("Finish");
   ros::spin();
   return 0;
 }

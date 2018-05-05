@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
   // start
   m.start_competition();
   // update inventory
-  m.checkInventory();
+  m.Inventory();
   // take order
   std::vector<osrf_gear::KitObject> pending_task;
   std::vector<manager::OrderMsg> ariac_order = {m.getTheOrderMsg()};
@@ -48,6 +48,7 @@ int main(int argc, char **argv) {
 
   while (!ariac_order.empty()) {
     // BUG modifing local copy bug
+    ROS_INFO("Here");
     auto kits = ariac_order.back()->kits;
     // ur10.move(ur10.home_joint_angle_);
     while (!kits.empty()) {
@@ -65,19 +66,26 @@ int main(int argc, char **argv) {
       while (!tasks.empty()) {
         auto part = tasks.front();
 
-        geometry_msgs::PoseStamped p;
+        std::string p;
+        geometry_msgs::PoseStamped pos;
 
         do {
           ROS_INFO_STREAM("Finding :" << part.type);
-          p = m.getPart(part.type);
-        } while (p.header.frame_id == "invalid");
+          p = m.get_BinId(part.type);
+          ROS_INFO_STREAM("Frame :" << p);
+        } while (p == "invalid");
+
+        //ROS_INFO_STREAM("Pickup :" << part.type);
+        //auto p = m.get_BinId(part.type);
+        pos = m.getPart(p);
         // pick up part
         ROS_INFO_STREAM("Pickup :" << part.type);
         // is it over conveyor?
-        if (p.header.frame_id == "world") {
+
+        if (pos.header.frame_id == "world") {
           // result = ur10.conveyor_pickup(p.pose, m.getConveyorSpeed());
         } else {
-          result = ur10.robust_pickup(p, part.type); // max_try = 1
+            result = ur10.robust_pickup(pos, part.type); // max_try = 1
         }
 
         ROS_INFO_STREAM("Pick up complete:" << result);

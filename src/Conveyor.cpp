@@ -31,6 +31,8 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+//#include <iostream>
+//#include <fstream>
 #include "project_ariac/Conveyor.hpp"
 
 Conveyor::Conveyor() {}
@@ -44,8 +46,19 @@ Conveyor::Conveyor(const ros::NodeHandle &nh) {
   service_ =
       nh_->advertiseService("conveyer/getSpeed", &Conveyor::findSpeed, this);
   last_time_ = ros::Time::now();
-  tfBroadcastTimer = nh.createTimer(ros::Duration(0.05),
-                                    &Conveyor::broadcast_tf_callback, this);
+  tfBroadcastTimer = nh.createTimer(ros::Duration(0.05), &Conveyor::broadcast_tf_callback, this);
+  /**
+  std::string src = "bin5_frame";
+  std::string target;
+  std::ofstream output;
+  output.open("/home/harish/Config2x3.csv");
+  for (int i = 0; i < 6; i++) {
+    target = "logical_camera_6_gear_part_" + std::to_string(i+1) + "_frame";
+    geometry_msgs::Pose pose = getTransfrom(src,target);
+    output << pose.position.x << "," << pose.position.y << "," << pose.position.z << std::endl;
+  }
+  output.close();
+  **/
 }
 
 Conveyor::~Conveyor() {}

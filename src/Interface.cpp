@@ -68,6 +68,7 @@ geometry_msgs::PoseStamped
 Interface::getPose(const geometry_msgs::PoseStamped &inPose, std::string ref) {
   geometry_msgs::PoseStamped outPose_;
   try {
+    ROS_INFO_STREAM("Target :" << inPose.header.frame_id);
     transformStamped_ = buffer_.lookupTransform(
         ref, inPose.header.frame_id, ros::Time(0), ros::Duration(10));
     tf2::doTransform(inPose, outPose_, transformStamped_);
