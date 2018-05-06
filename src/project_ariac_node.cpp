@@ -69,10 +69,22 @@ int main(int argc, char **argv) {
         if (ros::Time::now().toSec() - time_track.toSec() > 400)
           break;
 
+        int current_attempt = 0;
+        int max_try = 30;
+
         do {
+          current_attempt++;
+          if (current_attempt % 10 == 0)
+            m.checkInventory();
           ROS_INFO_STREAM("Finding :" << part.type);
           p = m.getPart(part.type);
-        } while (p.header.frame_id == "invalid");
+        } while (p.header.frame_id == "invalid" && current_attempt != max_try);
+
+        if (p.header.frame_id == "invalid" && max_try == current_attempt) {
+          tasks.erase(tasks.begin());
+          continue;
+        }
+
         // pick up part
         ROS_INFO_STREAM("Pickup :" << part.type);
         // is it over conveyor?
