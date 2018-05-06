@@ -48,7 +48,6 @@ Manager::Manager(const ros::NodeHandle &nh) {
   order_manager_ = std::make_shared<manager::Order>(nh, "/ariac/orders");
 
   ROS_DEBUG_STREAM("Manager is init..");
-  configType = 0;
   initialize();
 }
 
@@ -56,8 +55,8 @@ Manager::~Manager() { inventory_.clear(); }
 
 
 void Manager::initialize() {
-  config1.push_back({-0.0666047, 0.199258, 0.00536679, 0, 0, 1, 0});
   config1.push_back({0.0668974, 0.201598, 0.00413541, 0, 0, 1, 0});
+  config1.push_back({-0.0666047, 0.199258, 0.00536679, 0, 0, 1, 0});
   config1.push_back({-0.199113, 0.0678644, 00446563, 0, 0, 1, 0});
   config1.push_back({-0.0672372, 0.0647241, 0.00591626, 0, 0, 1, 0});
   config1.push_back({0.0661366, 0.0671152, 0.00519474, 0, 0, 1, 0});
@@ -81,10 +80,10 @@ void Manager::initialize() {
   config2.push_back({-0.0668235,  -0.198879, 0.00580873, 0, 0, 1, 0});
   config2.push_back({0.0671068, -0.19988,  0.00458785, 0, 0, 1, 0});
   config2.push_back({0.19891, -0.198302, 0.00399941, 0, 0, 1, 0});
-  config3.push_back({-0.0996682,  0.100102,  0.00587586, 0, 0, 1, 0});
+  config3.push_back({0.0992714, -0.100459, 0.00359961, 0, 0, 1, 0});
   config3.push_back({-0.0996682,  0.100102,  0.00587586, 0, 0, 1, 0});
   config3.push_back({-0.10264,  -0.101338, 0.00608485, 0, 0, 1, 0});
-  config3.push_back({0.0992714, -0.100459, 0.00359961, 0, 0, 1, 0});
+  config3.push_back({-0.0996682,  0.100102,  0.00587586, 0, 0, 1, 0});
   config4.push_back({-0.149318, 0.150378,  0.00395726, 0, 0, 1, 0});
   config4.push_back({0.100341,  0.150105,  0.00510879, 0, 0, 1, 0});
   config4.push_back({-0.149719, 0.0252709, 0.00539186, 0, 0, 1, 0});
@@ -148,7 +147,7 @@ void Manager::Inventory() {
   }
 }
 
-geometry_msgs::PoseStamped Manager::getPart(const std::string &partType) {
+geometry_msgs::PoseStamped Manager::getPart(const std::string &partType, int configType) {
   geometry_msgs::PoseStamped part;
   if (partType == "belt") {
     for (const auto &itr_part : conveyor_->getMessage()->models) {
@@ -173,6 +172,31 @@ geometry_msgs::PoseStamped Manager::getPart(const std::string &partType) {
     }
   }
   return part;
+}
+
+geometry_msgs::Pose Manager::getCameraMsg() {
+  for (const auto &itr_part : conveyor_->getMessage()->models) {
+    if(itr_part.pose.position.z > 1.3) {
+      return itr_part.pose;
+    }
+  }  
+}
+
+geometry_msgs::Pose Manager::compare(geometry_msgs::Pose cam, geometry_msgs::Pose transform) {
+    geometry_msgs::Pose offset;
+    offset.position.x = transform.position.x - cam.position.x;
+    offset.position.y = transform.position.y - cam.position.y;
+    offset.position.z = 0;
+    double roll, pitch, yaw_t, yaw_c, yaw;
+    tf::Matrix3x3(tf::Quaternion(cam.orientation.x, cam.orientation.y,
+                               cam.orientation.z, cam.orientation.w))
+      .getRPY(roll, pitch, yaw_c);
+    tf::Matrix3x3(tf::Quaternion(transform.orientation.x, transform.orientation.y,
+                               transform.orientation.z, transform.orientation.w))
+      .getRPY(roll, pitch, yaw_t);
+    yaw = yaw_t - yaw_c;
+    offset.orientation = tf::createQuaternionMsgFromRollPitchYaw(0, 0, yaw);
+    return offset;
 }
 
 /// Start the competition by waiting for and then calling the start ROS
@@ -364,3 +388,4 @@ int Manager::pick_agv() {
 
   return isAgvReady(1) ? 1 : 0;
 }
+

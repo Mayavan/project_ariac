@@ -44,6 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/String.h>
 #include <std_srvs/Trigger.h>
+#include <tf/transform_listener.h>
 // STL
 // #include <list>
 #include <map>
@@ -87,7 +88,7 @@ public:
   ~Manager();
   void Inventory();
   manager::Database processedOrder();
-  geometry_msgs::PoseStamped getPart(const std::string &partType);
+  geometry_msgs::PoseStamped getPart(const std::string &partType, int config);
   // ARIAC interface
   void start_competition(std::string topic = "/ariac/start_competition") const;
   void end_competition(std::string topic = "/ariac/end_competition") const;
@@ -106,6 +107,8 @@ public:
   bool isAgvReady(const int &no);
   int pick_agv();
   double getConveyorSpeed();
+  geometry_msgs::Pose getCameraMsg();
+  geometry_msgs::Pose compare(geometry_msgs::Pose cam, geometry_msgs::Pose transform);
 
 private:
   void initialize();
@@ -118,5 +121,4 @@ private:
   manager::ArmStatePtr arm_state_;
   manager::Database inventory_;
   std::vector<std::vector<double>> config1, config2, config3, config4;
-  int configType;
 };

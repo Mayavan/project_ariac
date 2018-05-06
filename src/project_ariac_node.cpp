@@ -10,6 +10,7 @@
 #include "project_ariac/Manager.hpp"
 #include "project_ariac/UR10_Control.hpp"
 #include <ros/ros.h>
+#include <tf/transform_datatypes.h>
 #include <vector>
 /**
  * TODO(ravib)
@@ -64,11 +65,12 @@ int main(int argc, char **argv) {
       priority_order = false;
       // Do until every part is placed
       while (!tasks.empty()) {
+        int config = 0;
         auto part = tasks.front();
 
         std::string p;
         geometry_msgs::PoseStamped pos;
-
+        geometry_msgs::Pose offset;
         do {
           ROS_INFO_STREAM("Finding :" << part.type);
           p = m.get_BinId(part.type);
@@ -77,7 +79,7 @@ int main(int argc, char **argv) {
 
         //ROS_INFO_STREAM("Pickup :" << part.type);
         //auto p = m.get_BinId(part.type);
-        pos = m.getPart(p);
+        pos = m.getPart(p, config);
         // pick up part
         ROS_INFO_STREAM("Pickup :" << part.type);
         // is it over conveyor?
@@ -87,14 +89,43 @@ int main(int argc, char **argv) {
         } else {
             result = ur10.robust_pickup(pos, part.type); // max_try = 1
         }
-
+        
+        while(!result) {
+          if (config == 0) 
+            config += 1;
+          if (config == 3)
+            config = 0;
+          config += 1;
+          pos = m.getPart(p, config);
+          result = ur10.robust_pickup(pos, part.type);
+        }
+        
         ROS_INFO_STREAM("Pick up complete:" << result);
         // if success than place or pick another part
         // if (part.type == "pulley_part" && result) {
         //   ROS_INFO_STREAM("Flipping pulley part:");
         //   ur10.flip_pulley();
         // }
+        ur10.agv_waypoint_[0][0] = pos.pose.position.y;
+        ur10.move(ur10.agv_waypoint_[0]);
+        ur10.publishJointsValue({2.1, 0.25, -1.04, 1.29, 4.47, 4.71, 0.25});
+        
+        
+        offset = m.compare(m.getTransfrom("world", "ee_link"), m.getCameraMsg());
 
+        tf::Quaternion a(part.pose.orientation.x, part.pose.orientation.y,
+                         part.pose.orientation.z, part.pose.orientation.w);
+        tf::Quaternion b(offset.orientation.x, offset.orientation.y, 
+                         offset.orientation.z, offset.orientation.w);
+        tf::Quaternion c;
+        c = a * b.inverse();
+        geometry_msgs::Quaternion msg;
+        tf::quaternionTFToMsg(c, msg);
+        part.pose.orientation = msg;
+        //ros::spin();
+        
+        ur10.publishJointsValue({2.1, 0.4, -1.04, 1.29, 4.47, 4.71, 0.25});
+        // place failed
         std::string camera_frame =
             agv ? "logical_camera_" + std::to_string(CAMERA_OVER_TRAY_TWO) +
                       "_kit_tray_2_frame"

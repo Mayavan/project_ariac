@@ -84,13 +84,13 @@ public:
 
   bool pickup(const geometry_msgs::Pose &target);
   bool robust_pickup(const geometry_msgs::PoseStamped &pose,
-                     std::string partType, int max_try = 3);
+                     std::string partType, int max_try = 2);
   bool conveyor_pickup(const geometry_msgs::Pose &target, double speed = -0.2);
 
   bool place(const std::vector<geometry_msgs::Pose> &targets);
   bool place(geometry_msgs::Pose target, int agv = 0);
   bool robust_place(const geometry_msgs::Pose &target, const std::string &ref,
-                    int agv = 0, int max_try = 2);
+                    int agv = 0, int max_try = 5);
 
   std::vector<double> getHomeJoint();
   geometry_msgs::Pose getHomePose();
