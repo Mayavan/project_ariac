@@ -108,7 +108,7 @@ public:
   int pick_agv();
   double getConveyorSpeed();
   geometry_msgs::Pose getCameraMsg();
-  geometry_msgs::Pose compare(geometry_msgs::Pose cam, geometry_msgs::Pose transform);
+  geometry_msgs::Pose compare(geometry_msgs::Pose cam);
 
 private:
   void initialize();

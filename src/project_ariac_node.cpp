@@ -91,11 +91,11 @@ int main(int argc, char **argv) {
         }
         
         while(!result) {
-          if (config == 0) 
-            config += 1;
-          if (config == 3)
-            config = 0;
-          config += 1;
+           if (config == 0) 
+             config += 1;
+           if (config == 3)
+             config = 0;
+           config += 1;
           pos = m.getPart(p, config);
           result = ur10.robust_pickup(pos, part.type);
         }
@@ -111,8 +111,10 @@ int main(int argc, char **argv) {
         ur10.publishJointsValue({2.1, 0.25, -1.04, 1.29, 4.47, 4.71, 0.25});
         
         
-        offset = m.compare(m.getTransfrom("world", "ee_link"), m.getCameraMsg());
-
+        offset = m.compare(m.getTransfrom("world", "ee_link"));
+        ROS_INFO_STREAM("Offset : %d %d" << offset.position.x << offset.position.y);
+        part.pose.position.x += offset.position.x;
+        part.pose.position.y += offset.position.y;
         tf::Quaternion a(part.pose.orientation.x, part.pose.orientation.y,
                          part.pose.orientation.z, part.pose.orientation.w);
         tf::Quaternion b(offset.orientation.x, offset.orientation.y, 
@@ -123,7 +125,7 @@ int main(int argc, char **argv) {
         tf::quaternionTFToMsg(c, msg);
         part.pose.orientation = msg;
         //ros::spin();
-        
+        ros::spin();
         ur10.publishJointsValue({2.1, 0.4, -1.04, 1.29, 4.47, 4.71, 0.25});
         // place failed
         std::string camera_frame =

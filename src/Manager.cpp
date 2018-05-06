@@ -175,15 +175,25 @@ geometry_msgs::PoseStamped Manager::getPart(const std::string &partType, int con
 }
 
 geometry_msgs::Pose Manager::getCameraMsg() {
+  ros::spinOnce();
+  geometry_msgs::Pose p, p1;
   for (const auto &itr_part : conveyor_->getMessage()->models) {
-    if(itr_part.pose.position.z > 1.3) {
-      return itr_part.pose;
+    if(itr_part.pose.position.z < 0.4) { 
+      p = getTransfrom("world", "logical_camera_1_frame");
+      ROS_INFO_STREAM("Cam : %d %d" << p.position.x << p.position.y);
+      p1 = itr_part.pose;
+      p.position.x =  p.position.x - p1.position.x + 0.21;
+      p.position.y += p1.position.y;
+      return p;
     }
   }  
 }
 
-geometry_msgs::Pose Manager::compare(geometry_msgs::Pose cam, geometry_msgs::Pose transform) {
-    geometry_msgs::Pose offset;
+geometry_msgs::Pose Manager::compare(geometry_msgs::Pose transform) {
+    geometry_msgs::Pose offset, cam;
+    cam = getCameraMsg();
+    ROS_INFO_STREAM("Transform : %d %d" << transform.position.x << transform.position.y);
+    ROS_INFO_STREAM("Cam : %d %d" << cam.position.x << cam.position.y);
     offset.position.x = transform.position.x - cam.position.x;
     offset.position.y = transform.position.y - cam.position.y;
     offset.position.z = 0;
@@ -194,7 +204,7 @@ geometry_msgs::Pose Manager::compare(geometry_msgs::Pose cam, geometry_msgs::Pos
     tf::Matrix3x3(tf::Quaternion(transform.orientation.x, transform.orientation.y,
                                transform.orientation.z, transform.orientation.w))
       .getRPY(roll, pitch, yaw_t);
-    yaw = yaw_t - yaw_c;
+    yaw = yaw_c - yaw_t;
     offset.orientation = tf::createQuaternionMsgFromRollPitchYaw(0, 0, yaw);
     return offset;
 }
